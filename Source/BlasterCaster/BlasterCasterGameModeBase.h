@@ -13,5 +13,7 @@ UCLASS()
 class BLASTERCASTER_API ABlasterCasterGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+public:
+	virtual void Logout(AController* Exiting) override;
+	virtual void PostLogin(APlayerController* NewPlayer) override;
 };
