@@ -3,12 +3,21 @@
 
 #include "BlasterCharacter.h"
 
-// Sets default values
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
+
 ABlasterCharacter::ABlasterCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
+
+	CameraBoom->SetupAttachment(GetMesh());
+	CameraBoom->TargetArmLength = 600;
+	CameraBoom->bUsePawnControlRotation = true;
+
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 }
 
 // Called when the game starts or when spawned
