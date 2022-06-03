@@ -21,11 +21,18 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void MoveForward(float value);
+	void MoveRight(float value);
+	void Turn(float value);
+	void LookUp(float value);
 private:
-	UPROPERTY(VisibleDefaultsOnly,Category="Camera")
+	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
-	UPROPERTY(VisibleDefaultsOnly,Category="Camera")
+	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(EditDefaultsOnly)
+	float Sensitivty{25};
 	
 public:	
 	
