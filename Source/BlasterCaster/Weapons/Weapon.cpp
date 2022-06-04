@@ -3,6 +3,8 @@
 
 #include "Weapon.h"
 #include "Components/SphereComponent.h"
+#include "Components/WidgetComponent.h"
+#include "BlasterCaster/Character/BlasterCharacter.h"
 
 AWeapon::AWeapon()
 {
@@ -24,18 +26,44 @@ AWeapon::AWeapon()
 	AreaSphere->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 
 	AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	PickUpWidget = CreateDefaultSubobject<UWidgetComponent>("PickUpWidget");
+	PickUpWidget->SetupAttachment(RootComponent);
 }
 
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if(PickUpWidget)
+	{
+		PickUpWidget->SetVisibility(false);
+	}
+
+	
 	if(HasAuthority())
 	{
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		AreaSphere->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &AWeapon::OnSphereOverlap);
 	}
 }
+
+void AWeapon::OnSphereOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& HitResult)
+{
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(OtherActor);
+	if(BlasterCharacter && PickUpWidget)
+	{
+		PickUpWidget->SetVisibility(true);
+		if(GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1,15,FColor::Blue, TEXT("Hello"));
+		}
+	}
+}
+
 
 void AWeapon::Tick(float DeltaTime)
 {

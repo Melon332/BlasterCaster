@@ -28,15 +28,27 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	virtual void OnSphereOverlap(
+		UPrimitiveComponent* PrimitiveComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& HitResult);
+
 public:	
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")
 	USkeletalMeshComponent* WeaponMesh;
 
-	UPROPERTY(VisibleDefaultsOnly)
+	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")
 	class USphereComponent* AreaSphere;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category="Weapon Properties")
 	EWeaponState WeaponState;
+
+	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")
+	class UWidgetComponent* PickUpWidget;
 };
