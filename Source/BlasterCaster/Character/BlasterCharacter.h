@@ -33,6 +33,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float Sensitivty{25};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	class UWidgetComponent* OverHeadWidget;
 	
 public:	
 	
