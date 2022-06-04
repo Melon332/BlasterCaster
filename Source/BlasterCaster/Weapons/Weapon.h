@@ -46,7 +46,8 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
-public:	
+public:
+	FORCEINLINE void SetWeaponState(EWeaponState State) { WeaponState = State; }
 
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")

@@ -3,6 +3,7 @@
 
 #include "BlasterCharacter.h"
 
+#include "BlasterCaster/Components/CombatComponent.h"
 #include "BlasterCaster/Weapons/Weapon.h"
 #include "Net/UnrealNetwork.h"
 #include "UObject/CoreNet.h"
@@ -30,6 +31,9 @@ ABlasterCharacter::ABlasterCharacter()
 
 	OverHeadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverHeadWidget"));
 	OverHeadWidget->SetupAttachment(RootComponent);
+
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
+	CombatComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -65,6 +69,16 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAxis(TEXT("LookUp / Down"), this, &ThisClass::LookUp);
 
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this ,&ThisClass::Jump);
+	PlayerInputComponent->BindAction(TEXT("Equip"),IE_Pressed,this, &ThisClass::EquipButtonPressed);
+}
+
+void ABlasterCharacter::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if(CombatComponent)
+	{
+		CombatComponent->Character = this;
+	}
 }
 
 void ABlasterCharacter::MoveForward(float value)
@@ -95,6 +109,14 @@ void ABlasterCharacter::Turn(float value)
 void ABlasterCharacter::LookUp(float value)
 {
 	AddControllerPitchInput(value * Sensitivty);
+}
+
+void ABlasterCharacter::EquipButtonPressed()
+{
+	if(HasAuthority() && CombatComponent)
+	{
+		CombatComponent->EquipWeapon(OverlappingWeapon);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
