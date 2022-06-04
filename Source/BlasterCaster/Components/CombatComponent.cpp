@@ -4,6 +4,7 @@
 #include "CombatComponent.h"
 #include "BlasterCaster/Weapons/Weapon.h"
 #include "BlasterCaster/Character/BlasterCharacter.h"
+#include "Components/SphereComponent.h"
 #include "Engine/SkeletalMeshSocket.h"
 
 // Sets default values for this component's properties
@@ -41,6 +42,5 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 		Socket->AttachActor(EquippedWeapon, Character->GetMesh());
 	}
 	EquippedWeapon->SetOwner(Character);
-	EquippedWeapon->ShowPickUpWidget(false);
 }
 
