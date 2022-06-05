@@ -9,6 +9,7 @@
 #include "UObject/CoreNet.h"
 
 #include "Camera/CameraComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -34,6 +35,9 @@ ABlasterCharacter::ABlasterCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	CombatComponent->SetIsReplicated(true);
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
