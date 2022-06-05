@@ -35,6 +35,8 @@ protected:
 	void AimButtonReleased();
 
 	void EquipButtonPressed();
+
+	void AimOffset(float DeltaTime);
 private:
 	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -61,9 +63,16 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="Crouching")
 	bool UnCrouchOnReleaseCrouchButton{true};
+
+	float AO_Yaw;
+	float AO_Pitch;
+	FRotator StartingAimRotation;
 	
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
 	bool IsAiming();
+
+	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
 };
