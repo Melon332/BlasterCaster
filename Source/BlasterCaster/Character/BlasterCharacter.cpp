@@ -75,6 +75,9 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &ThisClass::CrouchButtonPressed);
 	PlayerInputComponent->BindAction(TEXT("Crouch"),IE_Released, this, &ThisClass::CrouchButtonReleased);
+
+	PlayerInputComponent->BindAction(TEXT("Aim"), IE_Pressed, this, &ThisClass::AimButtonPressed);
+	PlayerInputComponent->BindAction(TEXT("Aim"),IE_Released, this, &ThisClass::AimButtonReleased);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -136,6 +139,22 @@ void ABlasterCharacter::CrouchButtonReleased()
 	}
 }
 
+void ABlasterCharacter::AimButtonPressed()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->SetAiming(true);
+	}
+}
+
+void ABlasterCharacter::AimButtonReleased()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->SetAiming(false);
+	}
+}
+
 void ABlasterCharacter::EquipButtonPressed()
 {
 	if(CombatComponent)
@@ -191,5 +210,10 @@ void ABlasterCharacter::SetOverlappingWeapon(AWeapon* OverlappedWeapon)
 bool ABlasterCharacter::IsWeaponEquipped()
 {
 	return (CombatComponent && CombatComponent->EquippedWeapon);
+}
+
+bool ABlasterCharacter::IsAiming()
+{
+	return CombatComponent && CombatComponent->bAiming;
 }
 

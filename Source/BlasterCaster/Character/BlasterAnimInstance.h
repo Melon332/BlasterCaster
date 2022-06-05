@@ -37,4 +37,7 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess = "true"))
 	bool bIsCrouching;
+
+	UPROPERTY(BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess = "true"))
+	bool bAiming;
 };
