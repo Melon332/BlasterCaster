@@ -34,6 +34,8 @@ ABlasterCharacter::ABlasterCharacter()
 
 	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("Combat Component"));
 	CombatComponent->SetIsReplicated(true);
+
+	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -70,6 +72,9 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this ,&ThisClass::Jump);
 	PlayerInputComponent->BindAction(TEXT("Equip"),IE_Pressed,this, &ThisClass::EquipButtonPressed);
+
+	PlayerInputComponent->BindAction(TEXT("Crouch"), IE_Pressed, this, &ThisClass::CrouchButtonPressed);
+	PlayerInputComponent->BindAction(TEXT("Crouch"),IE_Released, this, &ThisClass::CrouchButtonReleased);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -109,6 +114,26 @@ void ABlasterCharacter::Turn(float value)
 void ABlasterCharacter::LookUp(float value)
 {
 	AddControllerPitchInput(value * Sensitivty);
+}
+
+void ABlasterCharacter::CrouchButtonPressed()
+{
+	if(bIsCrouched)
+	{
+		UnCrouch();
+	}
+	else
+	{
+		Crouch();
+	}
+}
+
+void ABlasterCharacter::CrouchButtonReleased()
+{
+	if(UnCrouchOnReleaseCrouchButton)
+	{
+		UnCrouch();
+	}
 }
 
 void ABlasterCharacter::EquipButtonPressed()

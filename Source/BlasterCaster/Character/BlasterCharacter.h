@@ -29,6 +29,8 @@ protected:
 	void MoveRight(float value);
 	void Turn(float value);
 	void LookUp(float value);
+	void CrouchButtonPressed();
+	void CrouchButtonReleased();
 
 	void EquipButtonPressed();
 private:
@@ -54,6 +56,9 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
+
+	UPROPERTY(EditDefaultsOnly, Category="Crouching")
+	bool UnCrouchOnReleaseCrouchButton{true};
 	
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
