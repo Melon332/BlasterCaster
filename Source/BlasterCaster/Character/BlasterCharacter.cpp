@@ -201,6 +201,13 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	}
 
 	AO_Pitch = GetBaseAimRotation().Pitch;
+	if(AO_Pitch > 90 && !IsLocallyControlled())
+	{
+		//Map pitch from the range [270 to 360) to the range [-90 to 0)
+		FVector2d InRange(270.f, 360.f);
+		FVector2d OutRange(-90.f, 0.f);
+		AO_Pitch = FMath::GetMappedRangeValueClamped(InRange,OutRange, AO_Pitch);
+	}
 }
 
 void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
