@@ -37,6 +37,8 @@ protected:
 	void EquipButtonPressed();
 
 	void AimOffset(float DeltaTime);
+
+	virtual void Jump() override;
 private:
 	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
