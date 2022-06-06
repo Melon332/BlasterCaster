@@ -35,6 +35,8 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess = "true"))
 	bool bWeaponEquipped;
 
+	class AWeapon* WeaponEquipped;
+
 	UPROPERTY(BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess = "true"))
 	bool bIsCrouching;
 
@@ -52,6 +54,11 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess = "true"))
 	float AO_Pitch;
+
+	UPROPERTY(BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess = "true"))
+	FTransform LeftHandTransform;
+
+	void CalculateCharacterRotationAndLean(float DeltaTime);
 
 	FRotator CharacterRotationLastFrame;
 	FRotator CharacterRotation;

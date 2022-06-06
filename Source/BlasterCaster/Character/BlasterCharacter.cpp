@@ -130,8 +130,9 @@ void ABlasterCharacter::CrouchButtonPressed()
 	if(bIsCrouched)
 	{
 		UnCrouch();
+		return;
 	}
-	else
+	if(!GetCharacterMovement()->IsFalling())
 	{
 		Crouch();
 	}
@@ -255,5 +256,11 @@ bool ABlasterCharacter::IsWeaponEquipped()
 bool ABlasterCharacter::IsAiming()
 {
 	return CombatComponent && CombatComponent->bAiming;
+}
+
+AWeapon* ABlasterCharacter::GetEquippedWeapon()
+{
+	if(!CombatComponent) return nullptr;
+	return CombatComponent->EquippedWeapon;
 }
 
