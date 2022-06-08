@@ -70,5 +70,8 @@ private:
 	void OnRep_WeaponState();
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
-	class UAnimationAsset* FireAnimation; 
+	class UAnimationAsset* FireAnimation;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class ACasing> CasingClass;
 };

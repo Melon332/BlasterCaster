@@ -7,6 +7,8 @@
 #include "BlasterCaster/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
 #include "Animation/AnimationAsset.h"
+#include "Casing.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 AWeapon::AWeapon()
 {
@@ -103,6 +105,16 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 	if(FireAnimation)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation,false);
+		if(CasingClass)
+		{
+			APawn* PawnInstigator = Cast<APawn>(GetOwner());
+			const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+			if(AmmoEjectSocket && PawnInstigator)
+			{
+				FTransform MuzzleTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+				GetWorld()->SpawnActor<ACasing>(CasingClass, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator());
+			}
+		}
 	}
 }
 
