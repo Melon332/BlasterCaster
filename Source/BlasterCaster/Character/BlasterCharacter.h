@@ -33,6 +33,8 @@ protected:
 	void CrouchButtonReleased();
 	void AimButtonPressed();
 	void AimButtonReleased();
+	void FireButtonPressed();
+	void FireButtonReleased();
 
 	void EquipButtonPressed();
 
@@ -73,6 +75,9 @@ private:
 
 	ETurningState TurningState;
 	void TurnInPlace(float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	class UAnimMontage* FireWeaponMontage;
 	
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
@@ -83,4 +88,6 @@ public:
 	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
 	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; } 
 	AWeapon* GetEquippedWeapon();
+
+	void PlayFireMontage(bool bAiming);
 };

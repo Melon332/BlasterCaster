@@ -6,6 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "BlasterCaster/Character/BlasterCharacter.h"
 #include "Net/UnrealNetwork.h"
+#include "Animation/AnimationAsset.h"
 
 AWeapon::AWeapon()
 {
@@ -94,6 +95,14 @@ void AWeapon::SetWeaponState(EWeaponState State)
 		AreaSphere->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		ShowPickUpWidget(false);
 		break;
+	}
+}
+
+void AWeapon::FireWeapon()
+{
+	if(FireAnimation)
+	{
+		WeaponMesh->PlayAnimation(FireAnimation,false);
 	}
 }
 

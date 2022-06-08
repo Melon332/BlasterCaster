@@ -30,6 +30,11 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+
+	void FireButtonPressed(bool bPressed);
+
+	UFUNCTION(Server, Reliable)
+	void ServerFireButtonPressed();
 	
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
@@ -47,4 +52,6 @@ private:
 	float BaseWalkSpeed;
 	UPROPERTY(EditDefaultsOnly)
 	float AimWalkSpeed;
+
+	bool bFireButtonPressed;
 };

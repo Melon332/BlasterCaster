@@ -72,6 +72,25 @@ void UCombatComponent::OnRep_EquippedWeapon()
 	}
 }
 
+void UCombatComponent::FireButtonPressed(bool bPressed)
+{
+	bFireButtonPressed = bPressed;
+	if(bFireButtonPressed)
+	{
+		ServerFireButtonPressed();
+	}
+}
+
+void UCombatComponent::ServerFireButtonPressed_Implementation()
+{
+	if(!EquippedWeapon) return;
+	if(Character)
+	{
+		Character->PlayFireMontage(bAiming);
+		EquippedWeapon->FireWeapon();
+	}
+}
+
 void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if(!Character || !WeaponToEquip) return;
