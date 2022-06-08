@@ -6,6 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
+
+#define TRACE_LENGTH 80000
+
 class ABlasterCharacter;
 class AWeapon;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -30,20 +33,27 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
-
+	
 	void FireButtonPressed(bool bPressed);
 
 	UFUNCTION(Server, Reliable)
-	void ServerFireButtonPressed();
+	void ServerFireButtonPressed(const FVector_NetQuantize& TraceHitTarget);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastFireButtonPressed(const FVector_NetQuantize&  TraceHitTarget);
+
+	void TraceUnderCrossHair(FHitResult& HitResult);
 	
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
 private:
 	ABlasterCharacter* Character;
+
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+	
 
 	UPROPERTY(Replicated)
 	bool bAiming;

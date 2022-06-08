@@ -257,7 +257,6 @@ void ABlasterCharacter::Jump()
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
 {
-	UE_LOG(LogTemp,Warning,TEXT("AO_Yaw: %f"), AO_Yaw);
 	if(AO_Yaw > 90)
 	{
 		TurningState = ETurningState::ETIP_RIGHT;

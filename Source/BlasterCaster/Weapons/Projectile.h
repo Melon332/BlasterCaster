@@ -26,4 +26,12 @@ public:
 private:
 	UPROPERTY(EditDefaultsOnly)
 	class UBoxComponent* CollisonBox;
+
+	UPROPERTY(VisibleDefaultsOnly)
+	class UProjectileMovementComponent* ProjectileMovementComponent;
+	
+	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem* Tracer;
+	
+	class UParticleSystemComponent* TracerComponent;
 };
