@@ -5,9 +5,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BlasterCaster/BlasterTypes/TurningInPlace.h"
+#include "BlasterCaster/Interfaces/InteractWithCrosshair.h"
 #include "BlasterCharacter.generated.h"
 UCLASS()
-class BLASTERCASTER_API ABlasterCharacter : public ACharacter
+class BLASTERCASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshair
 {
 	GENERATED_BODY()
 
@@ -78,7 +79,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	class UAnimMontage* FireWeaponMontage;
-	
+
+	void HideCharacterIfCharacterClose();
+
+	UPROPERTY(EditDefaultsOnly)
+	float CameraThreshold{200};
+
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -86,7 +92,8 @@ public:
 
 	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
-	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; } 
+	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);

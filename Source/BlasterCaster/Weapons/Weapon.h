@@ -51,6 +51,8 @@ public:
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV;}
+	FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomInterpTime; }
 	virtual void FireWeapon(const FVector& HitTarget);
 
 	
@@ -91,4 +93,11 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ACasing> CasingClass;
+
+	//Zoomed FOV while aiming
+	UPROPERTY(EditDefaultsOnly)
+	float ZoomedFOV{30};
+
+	UPROPERTY(EditDefaultsOnly)
+	float ZoomInterpTime{10};
 };

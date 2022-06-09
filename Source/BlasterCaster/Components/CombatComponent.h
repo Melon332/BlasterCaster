@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "BlasterCaster/Widgets/BlasterHUD.h"
 #include "CombatComponent.generated.h"
 
 
@@ -79,6 +80,47 @@ private:
 	//HUD And Crosshair
 	float CrosshairVelocityFactor;
 	float CrosshairInAirFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
+	float CrosshairEnemyInSightFactor;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Crosshair Settings")
+	float CrosshairAimTightness{0.58f};
+
+	UPROPERTY(EditDefaultsOnly, Category= "Crosshair Settings")
+	float CrosshairAimTightnessEnemy{0.9f};
+
+	UPROPERTY(EditDefaultsOnly, Category= "Crosshair Settings")
+	float CrosshairShootingSpread{0.2f};
 
 	FVector HitTarget;
+
+	/*
+	 * Aiming and FOV
+	 */
+	//FOV While not aiming set to the cameras base FOV
+	float DefaultFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	float ZoomedFOV{30};
+
+	float CurrentFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	float ZoomInterpSpeed{20};
+
+	void InterpFOV(float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor EnemyCrosshairColor;
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor DefaultCrosshairColor;
+
+	FHUDPackage HUDPackage;
+
+	bool HasEnemyInSight;
+
+	UPROPERTY(EditAnywhere)
+	float DistanceToCharacterMax;
 };
