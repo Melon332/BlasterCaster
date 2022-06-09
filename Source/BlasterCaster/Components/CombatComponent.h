@@ -69,4 +69,10 @@ private:
 	float AimWalkSpeed;
 
 	bool bFireButtonPressed;
+
+	UPROPERTY(EditAnywhere)
+	float OffsetX{15};
+
+	UPROPERTY(EditAnywhere)
+	float OffsetY{15};
 };

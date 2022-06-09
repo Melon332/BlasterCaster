@@ -19,6 +19,9 @@ UCombatComponent::UCombatComponent()
 
 	BaseWalkSpeed = 600.f;
 	AimWalkSpeed = 450.f;
+
+	OffsetX = 15.f;
+	OffsetY = 15.f;
 }
 
 
@@ -112,7 +115,7 @@ void UCombatComponent::TraceUnderCrossHair(FHitResult& HitResult)
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
 
-	FVector2d CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2.f);
+	FVector2d CrosshairLocation(ViewportSize.X / 2.f + OffsetX, ViewportSize.Y / 2.f + OffsetY);
 	
 	FVector CrosshairWorldPosition;
 	FVector CrosshairWorldDirection;
@@ -128,7 +131,7 @@ void UCombatComponent::TraceUnderCrossHair(FHitResult& HitResult)
 	{
 		FVector Start = CrosshairWorldPosition;
 		FVector End = Start + CrosshairWorldDirection * TRACE_LENGTH;
-
+		
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 	}
 }
@@ -156,11 +159,11 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 			}
 			else
 			{
-				HUDPackage.CrosshairBottom = EquippedWeapon->CrosshairBottom;
-				HUDPackage.CrosshairCenter = EquippedWeapon->CrosshairCenter;
-				HUDPackage.CrosshairLeft = EquippedWeapon->CrosshairLeft;
-				HUDPackage.CrosshairRight = EquippedWeapon->CrosshairRight;
-				HUDPackage.CrosshairTop = EquippedWeapon->CrosshairTop;
+				HUDPackage.CrosshairBottom = nullptr;
+				HUDPackage.CrosshairCenter = nullptr;
+				HUDPackage.CrosshairLeft = nullptr;
+				HUDPackage.CrosshairRight = nullptr;
+				HUDPackage.CrosshairTop = nullptr;
 			}
 			
 			HUD->SetHUDPackage(HUDPackage);
