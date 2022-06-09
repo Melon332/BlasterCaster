@@ -14,6 +14,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterCaster/BlasterCaster.h"
 #include "BlasterAnimInstance.h"
 
 ABlasterCharacter::ABlasterCharacter()
@@ -43,6 +44,7 @@ ABlasterCharacter::ABlasterCharacter()
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
 
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Block);
+	GetMesh()->SetCollisionObjectType(ECC_SkeletalMesh);
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
@@ -293,6 +295,11 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 	}
 }
 
+void ABlasterCharacter::MultiCastHit_Implementation()
+{
+	PlayHitReactMontage();
+}
+
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if(CombatComponent)
@@ -365,6 +372,19 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
 		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABlasterCharacter::PlayHitReactMontage()
+{
+	if(!CombatComponent || !CombatComponent->EquippedWeapon) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && HitReactMontage)
+	{
+		AnimInstance->Montage_Play(FireWeaponMontage);
+		FName SectionName = FName("FromFront");
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }

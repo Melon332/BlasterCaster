@@ -36,6 +36,7 @@ protected:
 	void AimButtonReleased();
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void PlayHitReactMontage();
 
 	void EquipButtonPressed();
 
@@ -65,7 +66,7 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
-
+	
 	UPROPERTY(EditDefaultsOnly, Category="Crouching")
 	bool UnCrouchOnReleaseCrouchButton{true};
 
@@ -79,6 +80,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	class UAnimMontage* FireWeaponMontage;
+
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* HitReactMontage;
 
 	void HideCharacterIfCharacterClose();
 
@@ -98,4 +102,9 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 	FVector GetHitTarget() const;
+
+	
+	UFUNCTION(NetMulticast, Unreliable)
+	void MultiCastHit();
+
 };
