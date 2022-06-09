@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "BlasterCaster/BlasterTypes/TurningInPlace.h"
 #include "BlasterCharacter.generated.h"
-
 UCLASS()
 class BLASTERCASTER_API ABlasterCharacter : public ACharacter
 {
@@ -18,6 +18,10 @@ public:
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void PostInitializeComponents() override;
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -25,6 +29,18 @@ protected:
 	void MoveRight(float value);
 	void Turn(float value);
 	void LookUp(float value);
+	void CrouchButtonPressed();
+	void CrouchButtonReleased();
+	void AimButtonPressed();
+	void AimButtonReleased();
+	void FireButtonPressed();
+	void FireButtonReleased();
+
+	void EquipButtonPressed();
+
+	void AimOffset(float DeltaTime);
+
+	virtual void Jump() override;
 private:
 	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -33,7 +49,45 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float Sensitivty{25};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	class UWidgetComponent* OverHeadWidget;
+
+	UPROPERTY(ReplicatedUsing = OnRep_OverlappingWeapon)
+	class AWeapon* OverlappingWeapon;
+
+	UFUNCTION()
+	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
+
+	UPROPERTY(VisibleDefaultsOnly)
+	class UCombatComponent* CombatComponent;
+
+	UFUNCTION(Server, Reliable)
+	void ServerEquipButtonPressed();
+
+	UPROPERTY(EditDefaultsOnly, Category="Crouching")
+	bool UnCrouchOnReleaseCrouchButton{true};
+
+	float AO_Yaw;
+	float AO_Pitch;
+	float InterpAOYaw;
+	FRotator StartingAimRotation;
+
+	ETurningState TurningState;
+	void TurnInPlace(float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	class UAnimMontage* FireWeaponMontage;
 	
 public:	
-	
+	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
+	bool IsWeaponEquipped();
+	bool IsAiming();
+
+	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
+	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
+	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; } 
+	AWeapon* GetEquippedWeapon();
+
+	void PlayFireMontage(bool bAiming);
 };
