@@ -52,6 +52,23 @@ public:
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	virtual void FireWeapon(const FVector& HitTarget);
+
+	
+	//Textures for the weapon crosshairs
+	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
+	class UTexture2D* CrosshairCenter;
+
+	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
+	UTexture2D* CrosshairLeft;
+
+	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
+	UTexture2D* CrosshairRight;
+
+	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
+	UTexture2D* CrosshairTop;
+
+	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
+	UTexture2D* CrosshairBottom;
 	
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")
