@@ -343,3 +343,10 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	}
 }
 
+FVector ABlasterCharacter::GetHitTarget() const
+{
+	if(!CombatComponent) return FVector();
+
+	return CombatComponent->HitTarget;
+}
+

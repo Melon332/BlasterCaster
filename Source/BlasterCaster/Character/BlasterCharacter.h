@@ -48,7 +48,7 @@ private:
 	class UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditDefaultsOnly)
-	float Sensitivty{25};
+	float Sensitivty{2};
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UWidgetComponent* OverHeadWidget;
@@ -90,4 +90,5 @@ public:
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
+	FVector GetHitTarget() const;
 };

@@ -75,4 +75,10 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float OffsetY{15};
+
+	//HUD And Crosshair
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor;
+
+	FVector HitTarget;
 };

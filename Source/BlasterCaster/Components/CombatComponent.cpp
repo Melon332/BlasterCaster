@@ -41,6 +41,12 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	SetHUDCrosshairs(DeltaTime);
+	if(Character && Character->IsLocallyControlled())
+	{
+		FHitResult Hit;
+		TraceUnderCrossHair(Hit);
+		HitTarget = Hit.ImpactPoint;
+	}
 }
 
 void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -115,7 +121,7 @@ void UCombatComponent::TraceUnderCrossHair(FHitResult& HitResult)
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
 
-	FVector2d CrosshairLocation(ViewportSize.X / 2.f + OffsetX, ViewportSize.Y / 2.f + OffsetY);
+	FVector2D CrosshairLocation(ViewportSize.X / 2.f + OffsetX, ViewportSize.Y / 2.f + OffsetY);
 	
 	FVector CrosshairWorldPosition;
 	FVector CrosshairWorldDirection;
@@ -165,7 +171,27 @@ void UCombatComponent::SetHUDCrosshairs(float DeltaTime)
 				HUDPackage.CrosshairRight = nullptr;
 				HUDPackage.CrosshairTop = nullptr;
 			}
+			//Calculate crosshair spread
+
+			//600 max walk speed, map speed from [0, 600] to [0, 1]
+			FVector2d WalkSpeedRange(0.f,Character->GetCharacterMovement()->MaxWalkSpeed);
+			FVector2d VelocityMultiplierRange(0,1);
+			FVector Velocity = Character->GetVelocity();
+			Velocity.Z = 0;
+			CrosshairVelocityFactor = FMath::GetMappedRangeValueClamped(WalkSpeedRange, VelocityMultiplierRange, Velocity.Size());
+
+
+			if(Character->GetCharacterMovement()->IsFalling())
+			{
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25);
+			}
+			else
+			{
+				CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0, DeltaTime, 30);
+			}
+
 			
+			HUDPackage.CrosshairSpread = CrosshairVelocityFactor + CrosshairInAirFactor;
 			HUD->SetHUDPackage(HUDPackage);
 		}
 	}
