@@ -53,6 +53,10 @@ public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV;}
 	FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomInterpTime; }
+	FORCEINLINE float GetFireRate() const { return FireDelay; }
+	
+	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
+	
 	virtual void FireWeapon(const FVector& HitTarget);
 
 	
@@ -100,4 +104,10 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float ZoomInterpTime{10};
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	float FireDelay{0.2f};
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	bool bAutomatic;
 };

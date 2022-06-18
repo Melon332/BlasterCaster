@@ -34,7 +34,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
-	
+	void Fire();
+
 	void FireButtonPressed(bool bPressed);
 
 	UFUNCTION(Server, Reliable)
@@ -123,4 +124,11 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float DistanceToCharacterMax;
+
+	FTimerHandle FireHandle;
+	bool bCanFire = true;
+
+	void FireTimerFinished();
+
+	void StartFireTimer();
 };
