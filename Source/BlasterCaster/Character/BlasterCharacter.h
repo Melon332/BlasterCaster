@@ -106,6 +106,16 @@ private:
 	float ProxyYaw;
 
 	float TimeSinceLastMovementRep;
+	/**
+	* Player Health
+	*/
+	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	float MaxHealth{100.f};
+	UPROPERTY(ReplicatedUsing=OnRep_HealthUpdated, VisibleAnywhere)
+	float CurrentHealth;
+
+	UFUNCTION()
+	void OnRep_HealthUpdated();
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();

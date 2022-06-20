@@ -58,6 +58,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
+	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
 }
 
 // Called when the game starts or when spawned
@@ -360,6 +361,11 @@ void ABlasterCharacter::HideCharacterIfCharacterClose()
 			CombatComponent->EquippedWeapon->GetWeaponMesh()->bOwnerNoSee = false;
 		}
 	}
+}
+
+void ABlasterCharacter::OnRep_HealthUpdated()
+{
+	
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* OverlappedWeapon)
