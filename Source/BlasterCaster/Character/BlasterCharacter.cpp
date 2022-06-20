@@ -17,6 +17,7 @@
 #include "BlasterCaster/BlasterCaster.h"
 #include "BlasterAnimInstance.h"
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
+#include "BlasterCaster/GameMode/BlasterGameMode.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -306,9 +307,15 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
 	PlayHitReactMontage();
 	UpdateHUDHealth();
-	if(GEngine)
+
+	if(CurrentHealth <= 0.f)
 	{
-		GEngine->AddOnScreenDebugMessage(-1,15,FColor::Blue, TEXT("De"));
+		if( ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+		{
+			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+			ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, AttackerController);
+		}
 	}
 }
 
@@ -493,5 +500,10 @@ FVector ABlasterCharacter::GetHitTarget() const
 	if(!CombatComponent) return FVector();
 
 	return CombatComponent->HitTarget;
+}
+
+void ABlasterCharacter::Eliminated()
+{
+	
 }
 

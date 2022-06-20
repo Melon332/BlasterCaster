@@ -27,6 +27,8 @@ public:
 
 	virtual void OnRep_ReplicatedMovement() override;
 
+	
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -137,5 +139,7 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 	FVector GetHitTarget() const;
+
+	void Eliminated();
 
 };
