@@ -7,6 +7,7 @@
 #include "BlasterCaster/BlasterTypes/TurningInPlace.h"
 #include "BlasterCaster/Interfaces/InteractWithCrosshair.h"
 #include "BlasterCharacter.generated.h"
+
 UCLASS()
 class BLASTERCASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshair
 {
@@ -20,6 +21,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void UpdateHUDHealth();
 
 	virtual void PostInitializeComponents() override;
 
@@ -47,6 +49,9 @@ protected:
 	void CalculateSpeed(float& Speed) const ;
 
 	void AimOffset(float DeltaTime);
+
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
 	virtual void Jump() override;
 private:
@@ -116,6 +121,8 @@ private:
 
 	UFUNCTION()
 	void OnRep_HealthUpdated();
+
+	class ABlasterPlayerController* BlasterPlayerController;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -130,8 +137,5 @@ public:
 
 	void PlayFireMontage(bool bAiming);
 	FVector GetHitTarget() const;
-	
-	UFUNCTION(NetMulticast, Unreliable)
-	void MultiCastHit();
 
 };

@@ -16,6 +16,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "BlasterCaster/BlasterCaster.h"
 #include "BlasterAnimInstance.h"
+#include "BlasterCaster/PlayerController/BlasterPlayerController.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -61,11 +62,28 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
 }
 
+void ABlasterCharacter::UpdateHUDHealth()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if(BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDHealth(CurrentHealth, MaxHealth);
+	}
+}
+
 // Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	CurrentHealth = MaxHealth;
+
+	UpdateHUDHealth();
+
+	if(HasAuthority())
+	{
+		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+	}
 }
 
 // Called every frame
@@ -282,6 +300,18 @@ void ABlasterCharacter::AimOffset(float DeltaTime)
 	CalculateAOPitch();
 }
 
+void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatorController, AActor* DamageCauser)
+{
+	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
+	PlayHitReactMontage();
+	UpdateHUDHealth();
+	if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,15,FColor::Blue, TEXT("De"));
+	}
+}
+
 void ABlasterCharacter::Jump()
 {
 	if(bIsCrouched)
@@ -327,12 +357,6 @@ void ABlasterCharacter::OnRep_OverlappingWeapon(AWeapon* LastWeapon)
 		LastWeapon->ShowPickUpWidget(false);
 	}
 }
-
-void ABlasterCharacter::MultiCastHit_Implementation()
-{
-	PlayHitReactMontage();
-}
-
 void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if(CombatComponent)
@@ -365,7 +389,8 @@ void ABlasterCharacter::HideCharacterIfCharacterClose()
 
 void ABlasterCharacter::OnRep_HealthUpdated()
 {
-	
+	PlayHitReactMontage();
+	UpdateHUDHealth();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* OverlappedWeapon)
