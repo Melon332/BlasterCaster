@@ -49,6 +49,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	bRotateRootBone = BlasterCharacter->GetShouldRotateRootBone();
 
+	bEliminated = BlasterCharacter->IsEliminated();
+
 	if(bWeaponEquipped && WeaponEquipped && WeaponEquipped->GetWeaponMesh() && BlasterCharacter->GetMesh())
 	{
 		LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);

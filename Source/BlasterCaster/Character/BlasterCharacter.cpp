@@ -24,6 +24,7 @@ ABlasterCharacter::ABlasterCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm"));
 
+	SpawnCollisionHandlingMethod = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	CameraBoom->SetupAttachment(GetMesh());
 	CameraBoom->TargetArmLength = 600;
 	CameraBoom->bUsePawnControlRotation = true;
@@ -310,7 +311,7 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 
 	if(CurrentHealth <= 0.f)
 	{
-		if( ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+		if(ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
 			ABlasterPlayerController* AttackerController = Cast<ABlasterPlayerController>(InstigatorController);
@@ -459,6 +460,16 @@ void ABlasterCharacter::PlayHitReactMontage()
 	}
 }
 
+void ABlasterCharacter::PlayElimMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && ElimMontage)
+	{
+		AnimInstance->Montage_Play(ElimMontage);
+		
+	}
+}
+
 void ABlasterCharacter::SimProxiesTurn()
 {
 	if(!CombatComponent || !CombatComponent->EquippedWeapon) return;
@@ -504,6 +515,24 @@ FVector ABlasterCharacter::GetHitTarget() const
 
 void ABlasterCharacter::Eliminated()
 {
-	
+	MulticastEliminated();
+
+	GetWorld()->GetTimerManager().SetTimer(EliminatedTimer, this, &ThisClass::EliminatedTimerFinished, EliminatedDelay);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ABlasterCharacter::EliminatedTimerFinished()
+{
+	if(ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+	{
+		BlasterGameMode->RequestRespawn(this, Controller);
+	}
+}
+
+void ABlasterCharacter::MulticastEliminated_Implementation()
+{
+	bEliminated = true;
+	PlayElimMontage();
 }
 

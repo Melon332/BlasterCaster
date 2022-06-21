@@ -43,6 +43,7 @@ protected:
 	void FireButtonPressed();
 	void FireButtonReleased();
 	void PlayHitReactMontage();
+	void PlayElimMontage();
 	
 	void SimProxiesTurn();
 
@@ -97,6 +98,9 @@ private:
 	UPROPERTY(EditDefaultsOnly,Category=Combat)
 	UAnimMontage* HitReactMontage;
 
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* ElimMontage;
+
 	void HideCharacterIfCharacterClose();
 
 	UPROPERTY(EditDefaultsOnly)
@@ -125,6 +129,15 @@ private:
 	void OnRep_HealthUpdated();
 
 	class ABlasterPlayerController* BlasterPlayerController;
+
+	bool bEliminated = false;
+
+	FTimerHandle EliminatedTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+	float EliminatedDelay{3.f};
+
+	void EliminatedTimerFinished();
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -135,11 +148,15 @@ public:
 	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool GetShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
 	FVector GetHitTarget() const;
 
-	void Eliminated();
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastEliminated();
 
+	void Eliminated();
+	
 };

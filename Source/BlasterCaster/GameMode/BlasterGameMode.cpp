@@ -4,14 +4,30 @@
 #include "BlasterGameMode.h"
 #include "BlasterCaster/Character/BlasterCharacter.h"
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
-#include "GameFramework/PlayerState.h"
+#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
 
 void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* EliminatedPlayer,
                                         ABlasterPlayerController* EliminatedPlayerController, ABlasterPlayerController* AttackerController)
 {
-	if(GEngine)
+	if(EliminatedPlayer)
 	{
-		APlayerState* PlayerState = EliminatedPlayerController->GetPlayerState<APlayerState>();
-		GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Blue ,FString::Printf(TEXT("The player eliminated was: %s"), *PlayerState->GetPlayerName()));
+		EliminatedPlayer->Eliminated();
+	}
+}
+
+void ABlasterGameMode::RequestRespawn(ACharacter* EliminatedPlayer, AController* EliminatedController)
+{
+	if(EliminatedPlayer)
+	{
+		EliminatedPlayer->Reset();
+		EliminatedPlayer->Destroy();
+	}
+	if(EliminatedController)
+	{
+		TArray<AActor*> PlayerStarts;
+		UGameplayStatics::GetAllActorsOfClass(this, APlayerStart::StaticClass(),PlayerStarts);
+		int32 Selection = FMath::RandRange(0, PlayerStarts.Num() - 1);
+		RestartPlayerAtPlayerStart(EliminatedController, PlayerStarts[Selection]);
 	}
 }
