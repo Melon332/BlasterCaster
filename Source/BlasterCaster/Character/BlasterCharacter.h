@@ -28,6 +28,7 @@ public:
 
 	virtual void OnRep_ReplicatedMovement() override;
 
+	virtual void Destroyed() override;
 	
 
 protected:
@@ -58,6 +59,8 @@ protected:
 	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
 
 	virtual void Jump() override;
+
+	virtual void Landed(const FHitResult& Hit) override;
 private:
 	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -175,6 +178,18 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float WalkSpeed;
+
+	/*
+	 * Elimination Sound and Bot
+	 */
+	UPROPERTY(EditDefaultsOnly)
+	UParticleSystem* EliminationBotEffect;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ParticleSystemComponentBot;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* ElimBotSound;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -187,6 +202,8 @@ public:
 	FORCEINLINE bool GetShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
+	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);

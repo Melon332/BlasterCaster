@@ -18,6 +18,9 @@
 #include "BlasterAnimInstance.h"
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
 #include "BlasterCaster/GameMode/BlasterGameMode.h"
+#include "Kismet/GameplayStatics.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -157,6 +160,16 @@ void ABlasterCharacter::OnRep_ReplicatedMovement()
 	
 	SimProxiesTurn();
 	TimeSinceLastMovementRep = 0;
+}
+
+void ABlasterCharacter::Destroyed()
+{
+	Super::Destroyed();
+
+	if(ParticleSystemComponentBot)
+	{
+		ParticleSystemComponentBot->DestroyComponent();
+	}
 }
 
 void ABlasterCharacter::MoveForward(float value)
@@ -337,8 +350,21 @@ void ABlasterCharacter::Jump()
 	}
 	else
 	{
+		if(GetCharacterMovement())
+		{
+			GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+		}
 		Super::Jump();
 	}
+}
+
+void ABlasterCharacter::Landed(const FHitResult& Hit)
+{
+	if(bIsRunning)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+	Super::Landed(Hit);
 }
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)
@@ -617,5 +643,16 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	//Spawns an elimination bot
+	if(EliminationBotEffect)
+	{
+		FVector ElimBotSpawnPoint(GetActorLocation().X,GetActorLocation().Y,GetActorLocation().Z + 200.f);
+		ParticleSystemComponentBot = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), EliminationBotEffect, ElimBotSpawnPoint, GetActorRotation());
+	}
+	if(ElimBotSound)
+	{
+		UGameplayStatics::SpawnSoundAtLocation(GetWorld(), ElimBotSound, GetActorLocation());
+	}
 }
 
