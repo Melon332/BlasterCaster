@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "BlasterCaster/BlasterTypes/TurningInPlace.h"
 #include "BlasterCaster/Interfaces/InteractWithCrosshair.h"
+#include "Components/TimelineComponent.h"
 #include "BlasterCharacter.generated.h"
 
 UCLASS()
@@ -89,6 +90,9 @@ private:
 	float InterpAOYaw;
 	FRotator StartingAimRotation;
 
+	UPROPERTY(Replicated)
+	bool bIsRunning;
+
 	ETurningState TurningState;
 	void TurnInPlace(float DeltaTime);
 
@@ -125,6 +129,30 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_HealthUpdated, VisibleAnywhere)
 	float CurrentHealth;
 
+	/*
+	 *Dissolve Effect
+	 */
+	FOnTimelineFloat DissolveTrack;
+	
+	UPROPERTY(VisibleDefaultsOnly)
+	UTimelineComponent* DissolveTimeLine;
+
+	UPROPERTY(EditDefaultsOnly)
+	UCurveFloat* DissolveCurve;
+	
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	void StartDissolve();
+
+	//Dynamic instance that we can change at runtime
+	UPROPERTY(VisibleAnywhere, Category="Eliminated")
+	UMaterialInstanceDynamic* EliminatedDynamicMaterialInstance;
+	
+	//Material instance set on blueprint, used with dynamic instance material
+	UPROPERTY(EditDefaultsOnly, Category= "Eliminated")
+	UMaterialInstance* EliminatedMaterialInstance;
+
+	
 	UFUNCTION()
 	void OnRep_HealthUpdated();
 
@@ -138,6 +166,15 @@ private:
 	float EliminatedDelay{3.f};
 
 	void EliminatedTimerFinished();
+
+	void StartSprinting();
+	void StopSprinting();
+
+	UPROPERTY(EditDefaultsOnly)
+	float SprintSpeed;
+
+	UPROPERTY(EditDefaultsOnly)
+	float WalkSpeed;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -149,6 +186,7 @@ public:
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE bool GetShouldRotateRootBone() const { return bRotateRootBone; }
 	FORCEINLINE bool IsEliminated() const { return bEliminated; }
+	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
@@ -156,6 +194,9 @@ public:
 
 	UFUNCTION(NetMulticast,Reliable)
 	void MulticastEliminated();
+
+	UFUNCTION(Server,Reliable)
+	void ServerSprinting(bool bRunning);
 
 	void Eliminated();
 	

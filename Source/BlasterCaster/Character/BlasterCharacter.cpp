@@ -54,6 +54,11 @@ ABlasterCharacter::ABlasterCharacter()
 	TurningState = ETurningState::ETIP_NOTTURNING;
 	NetUpdateFrequency = 66.f;
 	MinNetUpdateFrequency = 33.f;
+
+	WalkSpeed = 600.f;
+	SprintSpeed = 900.f;
+
+	DissolveTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("Dissolve Timeline"));
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -62,6 +67,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
+	DOREPLIFETIME(ABlasterCharacter, bIsRunning);
 }
 
 void ABlasterCharacter::UpdateHUDHealth()
@@ -131,6 +137,9 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction(TEXT("Shoot"), IE_Pressed, this, &ThisClass::FireButtonPressed);
 	PlayerInputComponent->BindAction(TEXT("Shoot"), IE_Released, this, &ThisClass::FireButtonReleased);
+
+	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &ThisClass::StartSprinting);
+	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &ThisClass::StopSprinting);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -203,7 +212,7 @@ void ABlasterCharacter::CrouchButtonReleased()
 
 void ABlasterCharacter::AimButtonPressed()
 {
-	if(CombatComponent)
+	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->SetAiming(true);
 	}
@@ -219,7 +228,7 @@ void ABlasterCharacter::AimButtonReleased()
 
 void ABlasterCharacter::FireButtonPressed()
 {
-	if(CombatComponent)
+	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->FireButtonPressed(true);
 	}
@@ -395,6 +404,24 @@ void ABlasterCharacter::HideCharacterIfCharacterClose()
 	}
 }
 
+void ABlasterCharacter::UpdateDissolveMaterial(float DissolveValue)
+{
+	if(EliminatedDynamicMaterialInstance)
+	{
+		EliminatedDynamicMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), DissolveValue);
+	}
+}
+
+void ABlasterCharacter::StartDissolve()
+{
+	DissolveTrack.BindDynamic(this, &ThisClass::UpdateDissolveMaterial);
+	if(DissolveCurve && DissolveTimeLine)
+	{
+		DissolveTimeLine->AddInterpFloat(DissolveCurve, DissolveTrack);
+		DissolveTimeLine->Play();
+	}
+}
+
 void ABlasterCharacter::OnRep_HealthUpdated()
 {
 	PlayHitReactMontage();
@@ -513,13 +540,25 @@ FVector ABlasterCharacter::GetHitTarget() const
 	return CombatComponent->HitTarget;
 }
 
+void ABlasterCharacter::ServerSprinting_Implementation(bool bRunning)
+{
+	bIsRunning = bRunning;
+
+	if(GetCharacterMovement())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = bRunning ? SprintSpeed : WalkSpeed;
+	}
+}
+
 void ABlasterCharacter::Eliminated()
 {
+	if(CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		CombatComponent->EquippedWeapon->Dropped();
+	}
 	MulticastEliminated();
 
 	GetWorld()->GetTimerManager().SetTimer(EliminatedTimer, this, &ThisClass::EliminatedTimerFinished, EliminatedDelay);
-
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABlasterCharacter::EliminatedTimerFinished()
@@ -530,9 +569,53 @@ void ABlasterCharacter::EliminatedTimerFinished()
 	}
 }
 
+void ABlasterCharacter::StartSprinting()
+{
+	if(CombatComponent && CombatComponent->bAiming || CombatComponent->IsFiring()) return;
+	bIsRunning = true;
+	ServerSprinting(bIsRunning);
+	if(GetCharacterMovement())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+void ABlasterCharacter::StopSprinting()
+{
+	if(CombatComponent && CombatComponent->bAiming || CombatComponent->IsFiring()) return;
+	bIsRunning = false;
+	ServerSprinting(bIsRunning);
+	if(GetCharacterMovement())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
+}
+
 void ABlasterCharacter::MulticastEliminated_Implementation()
 {
 	bEliminated = true;
 	PlayElimMontage();
+
+	//Adds the dissolve effect to the character mesh and starts a timer to dissolve
+	if(EliminatedMaterialInstance)
+	{
+		EliminatedDynamicMaterialInstance = UMaterialInstanceDynamic::Create(EliminatedMaterialInstance,this);
+		GetMesh()->SetMaterial(0, EliminatedDynamicMaterialInstance);
+		EliminatedDynamicMaterialInstance->SetScalarParameterValue(TEXT("Dissolve"), 0.55f);
+		EliminatedDynamicMaterialInstance->SetScalarParameterValue(TEXT("Glow"), 200.f);
+		StartDissolve();
+	}
+
+	//Disables Character movement
+	GetCharacterMovement()->DisableMovement();
+	GetCharacterMovement()->StopMovementImmediately();
+	if(BlasterPlayerController)
+	{
+		DisableInput(BlasterPlayerController);
+	}
+	//Disable Collision
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 

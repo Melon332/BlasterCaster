@@ -51,6 +51,7 @@ protected:
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
+	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
 	ABlasterCharacter* Character;
 
