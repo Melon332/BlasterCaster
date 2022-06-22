@@ -12,7 +12,7 @@
 
 class ABlasterCharacter;
 class AWeapon;
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BLASTERCASTER_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -53,11 +53,14 @@ public:
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
+	UPROPERTY()
 	ABlasterCharacter* Character;
 
+	UPROPERTY()
 	class ABlasterPlayerController* BlasterController;
 
-	class ABlasterHUD* HUD;
+	UPROPERTY()
+	ABlasterHUD* HUD;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;

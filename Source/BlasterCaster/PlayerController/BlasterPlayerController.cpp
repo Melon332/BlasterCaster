@@ -23,6 +23,14 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	if(ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(InPawn))
 	{
 		SetHUDHealth(BlasterCharacter->GetCurrentHealth(), BlasterCharacter->GetMaxHealth());
+
+		bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->EliminatedText;
+		if(bHUDValid)
+		{
+			DeactivateEliminatedText();
+		}
 	}
 }
 
@@ -41,5 +49,60 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 		BlasterHUD->CharacterOverlay->HealthBar->SetPercent(HealthPercent);
 		FString HealthText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Health), FMath::CeilToInt(MaxHealth));
 		BlasterHUD->CharacterOverlay->HealthText->SetText(FText::FromString(HealthText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDScore(float Score)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->ScoreAmount;
+	
+	if(bHUDValid)
+	{
+		FString ScoreText = FString::Printf(TEXT("%d"), FMath::CeilToInt(Score));
+		BlasterHUD->CharacterOverlay->ScoreAmount->SetText(FText::FromString(ScoreText));
+	}
+	
+}
+
+void ABlasterPlayerController::SetHUDDefeat(int32 Score)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->DefeatAmount;
+	
+	if(bHUDValid)
+	{
+		FString DefeatText = FString::Printf(TEXT("%d"), Score);
+		BlasterHUD->CharacterOverlay->DefeatAmount->SetText(FText::FromString(DefeatText));
+	}
+}
+
+void ABlasterPlayerController::ActivateEliminatedText()
+{
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+	BlasterHUD->CharacterOverlay->EliminatedText;
+	
+	if(bHUDValid)
+	{
+		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void ABlasterPlayerController::DeactivateEliminatedText()
+{
+	bool bHUDValid = BlasterHUD &&
+BlasterHUD->CharacterOverlay &&
+BlasterHUD->CharacterOverlay->EliminatedText;
+	
+	if(bHUDValid)
+	{
+		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

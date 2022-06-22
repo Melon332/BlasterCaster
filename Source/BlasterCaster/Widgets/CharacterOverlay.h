@@ -18,6 +18,15 @@ public:
 	class UProgressBar* HealthBar;
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* HealthText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* ScoreAmount;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* DefeatAmount;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* EliminatedText;
 protected:
 private:
 };

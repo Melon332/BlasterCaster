@@ -18,6 +18,7 @@
 #include "BlasterAnimInstance.h"
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
 #include "BlasterCaster/GameMode/BlasterGameMode.h"
+#include "BlasterCaster/PlayerState/BlasterPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
@@ -91,6 +92,11 @@ void ABlasterCharacter::BeginPlay()
 
 	UpdateHUDHealth();
 
+	if(BlasterPlayerController)
+	{
+		BlasterPlayerController->DeactivateEliminatedText();
+	}
+
 	if(HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
@@ -115,6 +121,7 @@ void ABlasterCharacter::Tick(float DeltaTime)
 			OnRep_ReplicatedMovement();
 		}
 	}
+	PollInit();
 	HideCharacterIfCharacterClose();
 }
 
@@ -365,6 +372,19 @@ void ABlasterCharacter::Landed(const FHitResult& Hit)
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
 	Super::Landed(Hit);
+}
+
+void ABlasterCharacter::PollInit()
+{
+	if(!BlasterPlayerState)
+	{
+		BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+		if(BlasterPlayerState)
+		{
+			BlasterPlayerState->AddToScore(0.f);
+			BlasterPlayerState->AddToDefeats(0);
+		}
+	}
 }
 
 void ABlasterCharacter::TurnInPlace(float DeltaTime)

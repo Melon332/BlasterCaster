@@ -61,6 +61,9 @@ protected:
 	virtual void Jump() override;
 
 	virtual void Landed(const FHitResult& Hit) override;
+
+	//Initalize any data that doesn't get initalized in begin play
+	void PollInit();
 private:
 	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -159,6 +162,7 @@ private:
 	UFUNCTION()
 	void OnRep_HealthUpdated();
 
+	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
 
 	bool bEliminated = false;
@@ -190,6 +194,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* ElimBotSound;
+
+	UPROPERTY()
+	class ABlasterPlayerState* BlasterPlayerState;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();

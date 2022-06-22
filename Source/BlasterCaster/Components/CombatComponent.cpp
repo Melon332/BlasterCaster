@@ -174,7 +174,10 @@ void UCombatComponent::TraceUnderCrossHair(FHitResult& HitResult)
 		
 		GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility);
 
-		DrawDebugSphere(GetWorld(),Start,10,10,FColor::Blue);
+		if(HitResult.ImpactPoint == FVector::Zero())
+		{
+			HitResult.ImpactPoint = End;
+		}
 	}
 	
 	if(HitResult.GetActor() && HitResult.GetActor()->Implements<UInteractWithCrosshair>())
