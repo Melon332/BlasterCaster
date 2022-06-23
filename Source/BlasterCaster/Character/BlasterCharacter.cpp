@@ -19,6 +19,7 @@
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
 #include "BlasterCaster/GameMode/BlasterGameMode.h"
 #include "BlasterCaster/PlayerState/BlasterPlayerState.h"
+#include "BlasterCaster/Widgets/OverHeadWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
@@ -383,6 +384,10 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddToScore(0.f);
 			BlasterPlayerState->AddToDefeats(0);
+			if(UOverHeadWidget* Widget = Cast<UOverHeadWidget>(OverHeadWidget))
+			{
+				Widget->ShowPlayerNetRole(this);
+			}
 		}
 	}
 }
@@ -601,6 +606,7 @@ void ABlasterCharacter::Eliminated()
 	if(CombatComponent && CombatComponent->EquippedWeapon)
 	{
 		CombatComponent->EquippedWeapon->Dropped();
+		CombatComponent->bFireButtonPressed = false;
 	}
 	MulticastEliminated();
 
