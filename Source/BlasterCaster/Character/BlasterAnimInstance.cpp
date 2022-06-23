@@ -30,6 +30,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	Speed = Velocity.Size();
 
+	bIsRunning = BlasterCharacter->GetIsRunning();
+
 	bIsInAir = BlasterCharacter->GetCharacterMovement()->IsFalling();
 
 	bIsAccelearting = BlasterCharacter->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.f ? true : false;
@@ -47,6 +49,10 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	AO_Yaw = BlasterCharacter->GetAOYaw();
 	AO_Pitch = BlasterCharacter->GetAOPitch();
 
+	bRotateRootBone = BlasterCharacter->GetShouldRotateRootBone();
+
+	bEliminated = BlasterCharacter->IsEliminated();
+
 	if(bWeaponEquipped && WeaponEquipped && WeaponEquipped->GetWeaponMesh() && BlasterCharacter->GetMesh())
 	{
 		LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
@@ -55,6 +61,14 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
 		LeftHandTransform.SetLocation(OutPosition);
 		LeftHandTransform.SetRotation(FQuat(OutRotation));
+
+		if(BlasterCharacter->IsLocallyControlled())
+		{
+			bLocallyControlled = true;
+			FTransform RightHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("hand_r"), ERelativeTransformSpace::RTS_World);
+			FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(RightHandTransform.GetLocation(), RightHandTransform.GetLocation() + (RightHandTransform.GetLocation() - BlasterCharacter->GetHitTarget()));
+			RightHandRotation = FMath::RInterpTo(RightHandRotation,LookAtRotation,DeltaSeconds,30.f);
+		}
 	}
 
 	TurningInPlaceState = BlasterCharacter->GetTurningInPlace();

@@ -5,9 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "BlasterCaster/BlasterTypes/TurningInPlace.h"
+#include "BlasterCaster/Interfaces/InteractWithCrosshair.h"
+#include "Components/TimelineComponent.h"
 #include "BlasterCharacter.generated.h"
+
 UCLASS()
-class BLASTERCASTER_API ABlasterCharacter : public ACharacter
+class BLASTERCASTER_API ABlasterCharacter : public ACharacter, public IInteractWithCrosshair
 {
 	GENERATED_BODY()
 
@@ -19,9 +22,15 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	void UpdateHUDHealth();
 
 	virtual void PostInitializeComponents() override;
 
+	virtual void OnRep_ReplicatedMovement() override;
+
+	virtual void Destroyed() override;
+	
+	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
 protected:
 	virtual void BeginPlay() override;
 
@@ -35,12 +44,26 @@ protected:
 	void AimButtonReleased();
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void PlayHitReactMontage();
+	void PlayElimMontage();
+	
+	void SimProxiesTurn();
 
 	void EquipButtonPressed();
+	void CalculateAOPitch();
+	void CalculateSpeed(float& Speed) const ;
 
 	void AimOffset(float DeltaTime);
 
+	UFUNCTION()
+	void ReceiveDamage(AActor* DamagedActor, float Damage, const UDamageType* DamageType, class AController* InstigatorController, AActor* DamageCauser);
+
 	virtual void Jump() override;
+
+	virtual void Landed(const FHitResult& Hit) override;
+
+	//Initalize any data that doesn't get initalized in begin play
+	void PollInit();
 private:
 	UPROPERTY(EditDefaultsOnly,Category="Camera")
 	class USpringArmComponent* CameraBoom;
@@ -48,7 +71,7 @@ private:
 	class UCameraComponent* FollowCamera;
 
 	UPROPERTY(EditDefaultsOnly)
-	float Sensitivty{25};
+	float Sensitivty{2};
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UWidgetComponent* OverHeadWidget;
@@ -64,7 +87,7 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
-
+	
 	UPROPERTY(EditDefaultsOnly, Category="Crouching")
 	bool UnCrouchOnReleaseCrouchButton{true};
 
@@ -73,12 +96,107 @@ private:
 	float InterpAOYaw;
 	FRotator StartingAimRotation;
 
+	UPROPERTY(Replicated)
+	bool bIsRunning;
+
 	ETurningState TurningState;
 	void TurnInPlace(float DeltaTime);
 
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	class UAnimMontage* FireWeaponMontage;
+
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* HitReactMontage;
+
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* ElimMontage;
+
+	void HideCharacterIfCharacterClose();
+
+	UPROPERTY(EditDefaultsOnly)
+	float CameraThreshold{200};
+
+	bool bRotateRootBone;
+
+	UPROPERTY(EditDefaultsOnly)
+	float TurnThreshold{0.5f};
+
+	FRotator ProxyRotationLastFrame;
+	FRotator ProxyRotation;
+
+	float ProxyYaw;
+
+	float TimeSinceLastMovementRep;
+	/**
+	* Player Health
+	*/
+	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	float MaxHealth{100.f};
+	UPROPERTY(ReplicatedUsing=OnRep_HealthUpdated, VisibleAnywhere)
+	float CurrentHealth;
+
+	/*
+	 *Dissolve Effect
+	 */
+	FOnTimelineFloat DissolveTrack;
 	
+	UPROPERTY(VisibleDefaultsOnly)
+	UTimelineComponent* DissolveTimeLine;
+
+	UPROPERTY(EditDefaultsOnly)
+	UCurveFloat* DissolveCurve;
+	
+	UFUNCTION()
+	void UpdateDissolveMaterial(float DissolveValue);
+	void StartDissolve();
+
+	//Dynamic instance that we can change at runtime
+	UPROPERTY(VisibleAnywhere, Category="Eliminated")
+	UMaterialInstanceDynamic* EliminatedDynamicMaterialInstance;
+	
+	//Material instance set on blueprint, used with dynamic instance material
+	UPROPERTY(EditDefaultsOnly, Category= "Eliminated")
+	UMaterialInstance* EliminatedMaterialInstance;
+
+	
+	UFUNCTION()
+	void OnRep_HealthUpdated();
+
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterPlayerController;
+
+	bool bEliminated = false;
+
+	FTimerHandle EliminatedTimer;
+
+	UPROPERTY(EditDefaultsOnly)
+	float EliminatedDelay{3.f};
+
+	void EliminatedTimerFinished();
+
+	void StartSprinting();
+	void StopSprinting();
+
+	UPROPERTY(EditDefaultsOnly)
+	float SprintSpeed;
+
+	UPROPERTY(EditDefaultsOnly)
+	float WalkSpeed;
+
+	/*
+	 * Elimination Sound and Bot
+	 */
+	UPROPERTY(EditDefaultsOnly)
+	UParticleSystem* EliminationBotEffect;
+
+	UPROPERTY(VisibleAnywhere)
+	UParticleSystemComponent* ParticleSystemComponentBot;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* ElimBotSound;
+
+	UPROPERTY()
+	class ABlasterPlayerState* BlasterPlayerState;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -86,8 +204,27 @@ public:
 
 	FORCEINLINE float GetAOYaw() const { return AO_Yaw; }
 	FORCEINLINE float GetAOPitch() const { return AO_Pitch; }
-	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; } 
+	FORCEINLINE ETurningState GetTurningInPlace() const { return TurningState; }
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE bool GetShouldRotateRootBone() const { return bRotateRootBone; }
+	FORCEINLINE bool IsEliminated() const { return bEliminated; }
+	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
+	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
+	FVector GetHitTarget() const;
+
+	UFUNCTION(NetMulticast,Reliable)
+	void MulticastEliminated();
+
+	UFUNCTION(Server,Reliable)
+	void ServerSprinting(bool bRunning);
+
+	void Eliminated();
+
+	bool DiedFromFalling{false};
+
+	void SetDiedFromFalling(bool bDiedFromFalling) { DiedFromFalling = bDiedFromFalling; }
 };

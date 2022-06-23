@@ -13,5 +13,16 @@ UCLASS()
 class BLASTERCASTER_API ABlasterPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
+public:
+	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDScore(float Score);
+	void SetHUDDefeat(int32 Score);
+	void ActivateEliminatedText();
+	void DeactivateEliminatedText();
+protected:
+	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
+private:
+	UPROPERTY()
+	class ABlasterHUD* BlasterHUD;
 };

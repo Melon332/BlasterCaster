@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "BlasterCaster/Widgets/BlasterHUD.h"
 #include "CombatComponent.generated.h"
 
 
@@ -11,7 +12,7 @@
 
 class ABlasterCharacter;
 class AWeapon;
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class BLASTERCASTER_API UCombatComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -33,7 +34,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
-	
+	void Fire();
+
 	void FireButtonPressed(bool bPressed);
 
 	UFUNCTION(Server, Reliable)
@@ -49,12 +51,16 @@ protected:
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
 
+	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
+	UPROPERTY()
 	ABlasterCharacter* Character;
 
+	UPROPERTY()
 	class ABlasterPlayerController* BlasterController;
 
-	class ABlasterHUD* HUD;
+	UPROPERTY()
+	ABlasterHUD* HUD;
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
@@ -69,4 +75,64 @@ private:
 	float AimWalkSpeed;
 
 	bool bFireButtonPressed;
+
+	UPROPERTY(EditAnywhere)
+	float OffsetX{15};
+
+	UPROPERTY(EditAnywhere)
+	float OffsetY{15};
+
+	//HUD And Crosshair
+	float CrosshairVelocityFactor;
+	float CrosshairInAirFactor;
+	float CrosshairAimFactor;
+	float CrosshairShootingFactor;
+	float CrosshairEnemyInSightFactor;
+
+	UPROPERTY(EditDefaultsOnly, Category= "Crosshair Settings")
+	float CrosshairAimTightness{0.58f};
+
+	UPROPERTY(EditDefaultsOnly, Category= "Crosshair Settings")
+	float CrosshairAimTightnessEnemy{0.9f};
+
+	UPROPERTY(EditDefaultsOnly, Category= "Crosshair Settings")
+	float CrosshairShootingSpread{0.2f};
+
+	FVector HitTarget;
+
+	/*
+	 * Aiming and FOV
+	 */
+	//FOV While not aiming set to the cameras base FOV
+	float DefaultFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	float ZoomedFOV{30};
+
+	float CurrentFOV;
+
+	UPROPERTY(EditDefaultsOnly, Category="Combat")
+	float ZoomInterpSpeed{20};
+
+	void InterpFOV(float DeltaTime);
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor EnemyCrosshairColor;
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor DefaultCrosshairColor;
+
+	FHUDPackage HUDPackage;
+
+	bool HasEnemyInSight;
+
+	UPROPERTY(EditAnywhere)
+	float DistanceToCharacterMax;
+
+	FTimerHandle FireHandle;
+	bool bCanFire = true;
+
+	void FireTimerFinished();
+
+	void StartFireTimer();
 };

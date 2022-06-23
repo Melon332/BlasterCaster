@@ -24,6 +24,8 @@ protected:
 
 	virtual void Destroyed() override;
 
+	UPROPERTY(EditDefaultsOnly)
+	float Damage{20.f};
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -47,4 +49,5 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* ImpactSound;
+	
 };

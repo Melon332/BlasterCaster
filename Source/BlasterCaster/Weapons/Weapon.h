@@ -26,7 +26,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void ShowPickUpWidget(bool bShowWidget);
-
+	void Dropped();
 protected:
 	virtual void BeginPlay() override;
 
@@ -51,6 +51,12 @@ public:
 	void SetWeaponState(EWeaponState State);
 	FORCEINLINE USphereComponent* GetAreaSphere() const { return AreaSphere; }
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+	FORCEINLINE float GetZoomedFOV() const { return ZoomedFOV;}
+	FORCEINLINE float GetZoomedInterpSpeed() const { return ZoomInterpTime; }
+	FORCEINLINE float GetFireRate() const { return FireDelay; }
+	
+	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
+	
 	virtual void FireWeapon(const FVector& HitTarget);
 
 	
@@ -91,4 +97,17 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ACasing> CasingClass;
+
+	//Zoomed FOV while aiming
+	UPROPERTY(EditDefaultsOnly)
+	float ZoomedFOV{30};
+
+	UPROPERTY(EditDefaultsOnly)
+	float ZoomInterpTime{10};
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	float FireDelay{0.2f};
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	bool bAutomatic;
 };

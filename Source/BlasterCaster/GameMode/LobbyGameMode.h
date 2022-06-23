@@ -15,6 +15,11 @@ class BLASTERCASTER_API ALobbyGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
+
+	void ForceStart();
 protected:
 private:
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxPlayers{4};
 };
