@@ -14,6 +14,7 @@ class BLASTERCASTER_API ALobbyBlasterCharacter : public ABlasterCharacter
 {
 	GENERATED_BODY()
 public:
+	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
 protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 private:

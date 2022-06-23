@@ -31,6 +31,7 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 		{
 			DeactivateEliminatedText();
 		}
+		BlasterCharacter->SetDiedFromFalling(false);
 	}
 }
 

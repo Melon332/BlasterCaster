@@ -30,7 +30,7 @@ public:
 
 	virtual void Destroyed() override;
 	
-
+	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
 protected:
 	virtual void BeginPlay() override;
 
@@ -223,5 +223,8 @@ public:
 	void ServerSprinting(bool bRunning);
 
 	void Eliminated();
-	
+
+	bool DiedFromFalling{false};
+
+	void SetDiedFromFalling(bool bDiedFromFalling) { DiedFromFalling = bDiedFromFalling; }
 };

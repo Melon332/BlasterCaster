@@ -20,6 +20,13 @@ void ALobbyPlayerController::BeginPlay()
 	if(LobbyHUD)
 	{
 		LobbyHUD->AddLobbyDisplay();
+		if(LobbyHUD->LobbyCharacterOverlay && LobbyHUD->LobbyCharacterOverlay->ServerEnterText)
+		{
+			if(!HasAuthority())
+			{
+				LobbyHUD->LobbyCharacterOverlay->ServerEnterText->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
 	}
 	UpdatePlayerAmount();
 }

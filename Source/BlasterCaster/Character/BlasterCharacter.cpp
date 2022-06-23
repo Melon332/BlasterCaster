@@ -180,6 +180,19 @@ void ABlasterCharacter::Destroyed()
 	}
 }
 
+void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
+{
+	if(!DiedFromFalling)
+	{
+		if(ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
+		{
+			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, nullptr);
+			SetDiedFromFalling(true);
+		}
+	}
+}
+
 void ABlasterCharacter::MoveForward(float value)
 {
 	if(Controller && value != 0)

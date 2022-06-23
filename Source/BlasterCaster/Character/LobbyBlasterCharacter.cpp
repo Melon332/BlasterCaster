@@ -5,6 +5,13 @@
 
 #include "BlasterCaster/GameMode/LobbyGameMode.h"
 
+void ALobbyBlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
+{
+	//Super::FellOutOfWorld(dmgType);
+
+	TeleportTo(FVector(0,0,100), FRotator(), false, false);
+}
+
 void ALobbyBlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);

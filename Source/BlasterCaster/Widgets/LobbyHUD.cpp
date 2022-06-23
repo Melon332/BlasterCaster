@@ -5,6 +5,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "BlasterCaster/Widgets/LobbyCharacterOverlay.h"
+#include "Components/TextBlock.h"
 
 void ALobbyHUD::AddLobbyDisplay()
 {
@@ -13,5 +14,9 @@ void ALobbyHUD::AddLobbyDisplay()
 	{
 		LobbyCharacterOverlay = CreateWidget<ULobbyCharacterOverlay>(PlayerController, LobbyCharacterOverlayClass);
 		LobbyCharacterOverlay->AddToViewport();
+		if(!HasAuthority())
+		{
+			LobbyCharacterOverlay->NumberPlayerCount->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 }

@@ -16,4 +16,7 @@ class BLASTERCASTER_API ULobbyCharacterOverlay : public UUserWidget
 public:
 	UPROPERTY(meta=(BindWidget))
 	class UTextBlock* NumberPlayerCount;
+
+	UPROPERTY(meta=(BindWidget))
+	UTextBlock* ServerEnterText;
 };
