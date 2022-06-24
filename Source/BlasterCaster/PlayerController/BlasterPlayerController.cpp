@@ -4,6 +4,7 @@
 #include "BlasterPlayerController.h"
 
 #include "BlasterCaster/Character/BlasterCharacter.h"
+#include "BlasterCaster/PlayerState/BlasterPlayerState.h"
 #include "BlasterCaster/Widgets/BlasterHUD.h"
 #include "BlasterCaster/Widgets/CharacterOverlay.h"
 #include "Components/ProgressBar.h"
@@ -24,13 +25,7 @@ void ABlasterPlayerController::OnPossess(APawn* InPawn)
 	{
 		SetHUDHealth(BlasterCharacter->GetCurrentHealth(), BlasterCharacter->GetMaxHealth());
 
-		bool bHUDValid = BlasterHUD &&
-		BlasterHUD->CharacterOverlay &&
-		BlasterHUD->CharacterOverlay->EliminatedText;
-		if(bHUDValid)
-		{
-			DeactivateEliminatedText();
-		}
+		DeactivateEliminatedText();
 		BlasterCharacter->SetDiedFromFalling(false);
 	}
 }
@@ -69,18 +64,45 @@ void ABlasterPlayerController::SetHUDScore(float Score)
 	
 }
 
-void ABlasterPlayerController::SetHUDDefeat(int32 Score)
+void ABlasterPlayerController::SetHUDDefeat(int32 Deaths)
 {
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
 
 	bool bHUDValid = BlasterHUD &&
-	BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay &&
 		BlasterHUD->CharacterOverlay->DefeatAmount;
 	
 	if(bHUDValid)
 	{
-		FString DefeatText = FString::Printf(TEXT("%d"), Score);
+		UE_LOG(LogTemp,Warning, TEXT("The HUD is valid"));
+		FString DefeatText = FString::Printf(TEXT("%d"), Deaths);
 		BlasterHUD->CharacterOverlay->DefeatAmount->SetText(FText::FromString(DefeatText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
+{
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+	BlasterHUD->CharacterOverlay->WeaponAmmoCount;
+	
+	if(bHUDValid)
+	{
+		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
+		BlasterHUD->CharacterOverlay->WeaponAmmoCount->SetText(FText::FromString(AmmoText));
+	}
+}
+
+void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
+{
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+	BlasterHUD->CharacterOverlay->CarriedAmmoAmount;
+	
+	if(bHUDValid)
+	{
+		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
+		BlasterHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
 	}
 }
 
@@ -99,11 +121,12 @@ void ABlasterPlayerController::ActivateEliminatedText()
 void ABlasterPlayerController::DeactivateEliminatedText()
 {
 	bool bHUDValid = BlasterHUD &&
-BlasterHUD->CharacterOverlay &&
-BlasterHUD->CharacterOverlay->EliminatedText;
+	BlasterHUD->CharacterOverlay &&
+	BlasterHUD->CharacterOverlay->EliminatedText;
 	
 	if(bHUDValid)
 	{
 		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Hidden);
 	}
 }
+

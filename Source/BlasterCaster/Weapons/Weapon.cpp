@@ -9,6 +9,7 @@
 #include "Animation/AnimationAsset.h"
 #include "Casing.h"
 #include "Engine/SkeletalMeshSocket.h"
+#include "BlasterCaster/PlayerController/BlasterPlayerController.h"
 
 AWeapon::AWeapon()
 {
@@ -53,6 +54,21 @@ void AWeapon::BeginPlay()
 		AreaSphere->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnSphereOverlap);
 		AreaSphere->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnSphereEndOverlap);
 	}
+	CurrentAmmo = MaxMagCapacity;
+}
+
+void AWeapon::OnRep_Owner()
+{
+	Super::OnRep_Owner();
+	if(!Owner)
+	{
+		BlasterOwnerCharacter = nullptr;
+		BlasterOwnerController = nullptr;
+	}
+	else
+	{
+		UpdateAmmoHUD();
+	}
 }
 
 void AWeapon::Tick(float DeltaTime)
@@ -66,6 +82,7 @@ void AWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	
 	DOREPLIFETIME(AWeapon, WeaponState);
+	DOREPLIFETIME(AWeapon, CurrentAmmo);
 }
 
 void AWeapon::OnSphereOverlap(UPrimitiveComponent* PrimitiveComponent, AActor* OtherActor,
@@ -117,6 +134,7 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 	if(FireAnimation)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation,false);
+	}
 		if(CasingClass)
 		{
 			APawn* PawnInstigator = Cast<APawn>(GetOwner());
@@ -127,7 +145,7 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 				GetWorld()->SpawnActor<ACasing>(CasingClass, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator());
 			}
 		}
-	}
+	SpendRound();
 }
 
 void AWeapon::OnRep_WeaponState()
@@ -148,6 +166,31 @@ void AWeapon::OnRep_WeaponState()
 	}
 }
 
+void AWeapon::OnRep_Ammo()
+{
+	UpdateAmmoHUD();
+}
+
+void AWeapon::UpdateAmmoHUD()
+{
+	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
+	if(BlasterOwnerCharacter)
+	{
+		BlasterOwnerController = BlasterOwnerController == nullptr ? Cast<ABlasterPlayerController>(BlasterOwnerCharacter->Controller) : BlasterOwnerController;
+
+		if(BlasterOwnerController)
+		{
+			BlasterOwnerController->SetHUDWeaponAmmo(CurrentAmmo);
+		}
+	}
+}
+
+void AWeapon::SpendRound()
+{
+	CurrentAmmo = FMath::Clamp(CurrentAmmo - 1, 0, MaxMagCapacity);
+	UpdateAmmoHUD();
+}
+
 void AWeapon::ShowPickUpWidget(bool bShowWidget)
 {
 	if(PickUpWidget)
@@ -162,6 +205,7 @@ void AWeapon::Dropped()
 	FDetachmentTransformRules DetachRules(EDetachmentRule::KeepWorld, true);
 	WeaponMesh->DetachFromComponent(DetachRules);
 	SetOwner(nullptr);
-	
+	BlasterOwnerCharacter = nullptr;
+	BlasterOwnerController = nullptr;
 }
 

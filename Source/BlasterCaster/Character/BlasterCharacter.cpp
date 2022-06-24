@@ -97,6 +97,11 @@ void ABlasterCharacter::BeginPlay()
 	{
 		BlasterPlayerController->DeactivateEliminatedText();
 	}
+	if(BlasterPlayerState)
+	{
+		BlasterPlayerState->UpdateDefeatHUD();
+		UE_LOG(LogTemp,Warning,TEXT("Updated UI"))
+	}
 
 	if(HasAuthority())
 	{
@@ -187,7 +192,7 @@ void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
 		if(ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
-			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, nullptr);
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, BlasterPlayerController);
 			SetDiedFromFalling(true);
 		}
 	}
@@ -254,7 +259,7 @@ void ABlasterCharacter::AimButtonPressed()
 
 void ABlasterCharacter::AimButtonReleased()
 {
-	if(CombatComponent)
+	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->SetAiming(false);
 	}
@@ -262,7 +267,7 @@ void ABlasterCharacter::AimButtonReleased()
 
 void ABlasterCharacter::FireButtonPressed()
 {
-	if(CombatComponent && !bIsRunning)
+	if(CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(true);
 	}
@@ -397,10 +402,6 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddToScore(0.f);
 			BlasterPlayerState->AddToDefeats(0);
-			if(UOverHeadWidget* Widget = Cast<UOverHeadWidget>(OverHeadWidget))
-			{
-				Widget->ShowPlayerNetRole(this);
-			}
 		}
 	}
 }
@@ -636,18 +637,25 @@ void ABlasterCharacter::EliminatedTimerFinished()
 
 void ABlasterCharacter::StartSprinting()
 {
-	if(CombatComponent && CombatComponent->bAiming || CombatComponent->IsFiring()) return;
+	if(CombatComponent && CombatComponent->IsFiring()) return;
+	
+	if(CombatComponent->bAiming)
+	{
+		CombatComponent->SetAiming(false);
+	}
+	
 	bIsRunning = true;
 	ServerSprinting(bIsRunning);
 	if(GetCharacterMovement())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
+	UE_LOG(LogTemp,Warning,TEXT("Runspeed %f"), GetCharacterMovement()->MaxWalkSpeed);
 }
 
 void ABlasterCharacter::StopSprinting()
 {
-	if(CombatComponent && CombatComponent->bAiming || CombatComponent->IsFiring()) return;
+	if(!CombatComponent) return;
 	bIsRunning = false;
 	ServerSprinting(bIsRunning);
 	if(GetCharacterMovement())
@@ -658,6 +666,10 @@ void ABlasterCharacter::StopSprinting()
 
 void ABlasterCharacter::MulticastEliminated_Implementation()
 {
+	if(BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDWeaponAmmo(0);
+	}
 	bEliminated = true;
 	PlayElimMontage();
 

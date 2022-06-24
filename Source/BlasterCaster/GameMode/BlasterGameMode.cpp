@@ -22,6 +22,7 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* EliminatedPlayer,
 	if(VictimPlayerState)
 	{
 		VictimPlayerState->AddToDefeats(1);
+		EliminatedPlayerController->ActivateEliminatedText();
 	}
 	
 	if(EliminatedPlayer)

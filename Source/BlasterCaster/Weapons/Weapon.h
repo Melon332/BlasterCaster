@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BlasterCaster/Weapons/WeaponTypes.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -15,6 +16,7 @@ enum class EWeaponState : uint8
 	
 	EWS_MAX UMETA(DisplayName = "Default Max")
 };
+
 class USphereComponent;
 UCLASS()
 class BLASTERCASTER_API AWeapon : public AActor
@@ -30,6 +32,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void OnRep_Owner() override;
 	UFUNCTION()
 	virtual void OnSphereOverlap(
 		UPrimitiveComponent* PrimitiveComponent,
@@ -56,9 +59,12 @@ public:
 	FORCEINLINE float GetFireRate() const { return FireDelay; }
 	
 	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
+	FORCEINLINE bool IsEmpty() const { return CurrentAmmo <= 0; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return CurrentWeaponType; }
 	
 	virtual void FireWeapon(const FVector& HitTarget);
 
+	void UpdateAmmoHUD();
 	
 	//Textures for the weapon crosshairs
 	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
@@ -110,4 +116,24 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Combat")
 	bool bAutomatic;
+
+	UPROPERTY(VisibleDefaultsOnly, ReplicatedUsing=OnRep_Ammo)
+	int32 CurrentAmmo;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxMagCapacity;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	void SpendRound();
+
+	UPROPERTY()
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterOwnerController;
+
+	UPROPERTY(EditDefaultsOnly)
+	EWeaponType CurrentWeaponType;
 };

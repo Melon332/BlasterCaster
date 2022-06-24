@@ -37,6 +37,10 @@ void UCombatComponent::BeginPlay()
 			DefaultFOV = Character->GetFollowCamera()->FieldOfView;
 			CurrentFOV = Character->GetFollowCamera()->FieldOfView;
 		}
+		if(Character->HasAuthority())
+		{
+			InitalizeCarriedAmmo();
+		}
 	}
 }
 
@@ -63,6 +67,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 }
 
 void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
@@ -103,13 +108,19 @@ void UCombatComponent::OnRep_EquippedWeapon()
 
 void UCombatComponent::Fire()
 {
-	if(bCanFire)
+	if(CanFire())
 	{
 		ServerFireButtonPressed(HitTarget);
 		if(EquippedWeapon)
 		{
 			CrosshairShootingFactor = CrosshairShootingSpread;
 		}
+		StartFireTimer();
+		bCanFire = false;
+		return;
+	}
+	if(bFireButtonPressed && bCanFire)
+	{
 		StartFireTimer();
 		bCanFire = false;
 	}
@@ -147,7 +158,6 @@ void UCombatComponent::TraceUnderCrossHair(FHitResult& HitResult)
 	{
 		GEngine->GameViewport->GetViewportSize(ViewportSize);
 	}
-
 	FVector2D CrosshairLocation(ViewportSize.X / 2.f + OffsetX, ViewportSize.Y / 2.f + OffsetY);
 	
 	FVector CrosshairWorldPosition;
@@ -269,6 +279,10 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 {
 	if(!Character || !WeaponToEquip) return;
 
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->Dropped();
+	}
 	EquippedWeapon = WeaponToEquip;
 	EquippedWeapon->SetWeaponState(EWeaponState::EWS_Equipped);
 
@@ -280,6 +294,18 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	EquippedWeapon->SetOwner(Character);
 	Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 	Character->bUseControllerRotationYaw = true;
+	EquippedWeapon->UpdateAmmoHUD();
+
+	if(CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+	
+	BlasterController = BlasterController == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : BlasterController;
+	if(BlasterController)
+	{
+		BlasterController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
 }
 
 void UCombatComponent::InterpFOV(float DeltaTime)
@@ -314,5 +340,26 @@ void UCombatComponent::StartFireTimer()
 	if(EquippedWeapon == nullptr || Character == nullptr) return;
 	
 	Character->GetWorldTimerManager().SetTimer(FireHandle, this, &ThisClass::FireTimerFinished, EquippedWeapon->GetFireRate());
+}
+
+bool UCombatComponent::CanFire() const
+{
+	if(EquippedWeapon == nullptr || Character == nullptr) return false;
+	if(Character->GetIsRunning()) return false;
+	return !EquippedWeapon->IsEmpty() || !bCanFire;
+}
+
+void UCombatComponent::OnRep_CarriedAmmo()
+{
+	BlasterController = BlasterController == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : BlasterController;
+	if(BlasterController)
+	{
+		BlasterController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+}
+
+void UCombatComponent::InitalizeCarriedAmmo()
+{
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AssaultRifle, StartingARAmmo);
 }
 

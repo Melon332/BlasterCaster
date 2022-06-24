@@ -38,10 +38,8 @@ void ALobbyPlayerController::UpdatePlayerAmount()
 		LobbyHUD = LobbyHUD == nullptr ? Cast<ALobbyHUD>(GetHUD()) : LobbyHUD;
 		if(LobbyHUD)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Orange, TEXT("Lobby HUD is valid!"));
 			if(LobbyHUD && LobbyHUD->LobbyCharacterOverlay && LobbyHUD->LobbyCharacterOverlay->NumberPlayerCount)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Orange, TEXT("Lobby Hud and Lobby Overlay and Player Count textbox is valid!"));
 				FString PlayerNumber = FString::Printf(TEXT("%d/%d"), LobbyGameState->Players, LobbyGameState->MaxPlayers);
 				LobbyHUD->LobbyCharacterOverlay->NumberPlayerCount->SetText(FText::FromString(PlayerNumber));
 			}

@@ -27,6 +27,12 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* EliminatedText;
+
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* WeaponAmmoCount;
+	
+	UPROPERTY(meta = (BindWidget))
+	UTextBlock* CarriedAmmoAmount;
 protected:
 private:
 };

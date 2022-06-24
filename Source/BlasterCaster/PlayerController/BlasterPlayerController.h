@@ -16,7 +16,9 @@ class BLASTERCASTER_API ABlasterPlayerController : public APlayerController
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
 	void SetHUDScore(float Score);
-	void SetHUDDefeat(int32 Score);
+	void SetHUDDefeat(int32 Deaths);
+	void SetHUDWeaponAmmo(int32 Ammo);
+	void SetHUDCarriedAmmo(int32 Ammo);
 	void ActivateEliminatedText();
 	void DeactivateEliminatedText();
 protected:
