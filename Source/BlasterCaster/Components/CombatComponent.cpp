@@ -306,6 +306,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
 	}
+
+	if(EquippedWeapon->IsEmpty())
+	{
+		Reload();
+	}
 	
 	BlasterController = BlasterController == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : BlasterController;
 	if(BlasterController)
@@ -425,6 +430,10 @@ void UCombatComponent::FireTimerFinished()
 	if(bFireButtonPressed && EquippedWeapon->GetIsAutomatic() && !EquippedWeapon->IsEmpty())
 	{
 		Fire();
+	}
+	if(EquippedWeapon->IsEmpty())
+	{
+		Reload();
 	}
 }
 
