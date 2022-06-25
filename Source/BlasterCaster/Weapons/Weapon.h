@@ -29,6 +29,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void ShowPickUpWidget(bool bShowWidget);
 	void Dropped();
+	void AddAmmo(int32 AmmoToAdd);
+	void PlayReloadWeaponAnimation();
 protected:
 	virtual void BeginPlay() override;
 
@@ -60,6 +62,8 @@ public:
 	
 	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
 	FORCEINLINE bool IsEmpty() const { return CurrentAmmo <= 0; }
+	FORCEINLINE int32 GetCurrentAmmo() const { return CurrentAmmo; }
+	FORCEINLINE int32 GetMaxMagCapacity() const { return MaxMagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return CurrentWeaponType; }
 	
 	virtual void FireWeapon(const FVector& HitTarget);
@@ -81,6 +85,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
 	UTexture2D* CrosshairBottom;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* EquipSound;
 	
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")
@@ -100,6 +107,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	class UAnimationAsset* FireAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	UAnimationAsset* ReloadAnimation;
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ACasing> CasingClass;

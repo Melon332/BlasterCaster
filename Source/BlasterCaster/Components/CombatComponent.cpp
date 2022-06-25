@@ -11,6 +11,7 @@
 #include "Net/UnrealNetwork.h"
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
 #include "Camera/CameraComponent.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values for this component's properties
 UCombatComponent::UCombatComponent()
@@ -104,6 +105,11 @@ void UCombatComponent::OnRep_EquippedWeapon()
 		}
 		Character->GetCharacterMovement()->bOrientRotationToMovement = false;
 		Character->bUseControllerRotationYaw = true;
+
+		if(EquippedWeapon->EquipSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
+		}
 	}
 }
 
@@ -295,6 +301,11 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	{
 		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
 	}
+
+	if(EquippedWeapon->EquipSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, EquippedWeapon->EquipSound, Character->GetActorLocation());
+	}
 	
 	BlasterController = BlasterController == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : BlasterController;
 	if(BlasterController)
@@ -319,6 +330,7 @@ void UCombatComponent::FinishReloading()
 	if(Character->HasAuthority())
 	{
 		CurrentCombatState = ECombatState::ECS_Unoccupied;
+		UpdateAmmoValues();
 	}
 	if(bFireButtonPressed)
 	{
@@ -326,10 +338,40 @@ void UCombatComponent::FinishReloading()
 	}
 }
 
+int32 UCombatComponent::AmountToReload()
+{
+	if(!EquippedWeapon) return 0;
+	int32 RoomInMag = EquippedWeapon->GetMaxMagCapacity() - EquippedWeapon->GetCurrentAmmo();
+	if(CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		int32 AmountCarried = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+		int32 Least = FMath::Min(RoomInMag,AmountCarried);
+		return FMath::Clamp(Least, 0, Least);
+	}
+	return 0;
+}
+
+void UCombatComponent::UpdateAmmoValues()
+{
+	if(EquippedWeapon == nullptr) return;
+	int32 ReloadAmount = AmountToReload();
+	if(CarriedAmmoMap.Contains(EquippedWeapon->GetWeaponType()))
+	{
+		CarriedAmmoMap[EquippedWeapon->GetWeaponType()] -= ReloadAmount;
+		CarriedAmmo = CarriedAmmoMap[EquippedWeapon->GetWeaponType()];
+	}
+	BlasterController = BlasterController == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : BlasterController;
+	if(BlasterController)
+	{
+		BlasterController->SetHUDCarriedAmmo(CarriedAmmo);
+	}
+	EquippedWeapon->AddAmmo(-ReloadAmount);
+}
+
 void UCombatComponent::ServerReload_Implementation()
 {
-	if(!Character) return;
-
+	if(!Character || !EquippedWeapon) return;
+	
 	CurrentCombatState = ECombatState::ECS_Reloading;
 	HandleReload();
 }
@@ -337,6 +379,10 @@ void UCombatComponent::ServerReload_Implementation()
 void UCombatComponent::HandleReload()
 {
 	Character->PlayReloadMontage();
+	if(EquippedWeapon)
+	{
+		EquippedWeapon->PlayReloadWeaponAnimation();
+	}
 }
 
 void UCombatComponent::OnRep_CombatState()
@@ -347,7 +393,10 @@ void UCombatComponent::OnRep_CombatState()
 		HandleReload();
 		break;
 	case ECombatState::ECS_Unoccupied:
-		Fire();
+		if(bFireButtonPressed)
+		{
+			Fire();
+		}
 		break;
 	}
 }

@@ -135,16 +135,16 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 	{
 		WeaponMesh->PlayAnimation(FireAnimation,false);
 	}
-		if(CasingClass)
+	if(CasingClass)
+	{
+		APawn* PawnInstigator = Cast<APawn>(GetOwner());
+		const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
+		if(AmmoEjectSocket && PawnInstigator)
 		{
-			APawn* PawnInstigator = Cast<APawn>(GetOwner());
-			const USkeletalMeshSocket* AmmoEjectSocket = WeaponMesh->GetSocketByName(FName("AmmoEject"));
-			if(AmmoEjectSocket && PawnInstigator)
-			{
-				FTransform MuzzleTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
-				GetWorld()->SpawnActor<ACasing>(CasingClass, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator());
-			}
+			FTransform MuzzleTransform = AmmoEjectSocket->GetSocketTransform(WeaponMesh);
+			GetWorld()->SpawnActor<ACasing>(CasingClass, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator());
 		}
+	}
 	SpendRound();
 }
 
@@ -207,5 +207,19 @@ void AWeapon::Dropped()
 	SetOwner(nullptr);
 	BlasterOwnerCharacter = nullptr;
 	BlasterOwnerController = nullptr;
+}
+
+void AWeapon::AddAmmo(int32 AmmoToAdd)
+{
+	CurrentAmmo = FMath::Clamp(CurrentAmmo - AmmoToAdd, 0, MaxMagCapacity);
+	UpdateAmmoHUD();
+}
+
+void AWeapon::PlayReloadWeaponAnimation()
+{
+	if(ReloadAnimation)
+	{
+		WeaponMesh->PlayAnimation(ReloadAnimation, false);
+	}
 }
 

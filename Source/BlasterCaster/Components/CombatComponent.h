@@ -62,6 +62,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
 
+	int32 AmountToReload();
+	void UpdateAmmoValues();
+
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
 	UPROPERTY()
