@@ -24,6 +24,7 @@ public:
 	void AddToScore(float ScoreAmount);
 	void UpdateDefeatHUD();
 	void AddToDefeats(int32 DefeatAmount);
+	FORCEINLINE int32 GetDefeats() const { return Defeats; }
 protected:
 	
 private:

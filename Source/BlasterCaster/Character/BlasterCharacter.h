@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BlasterCaster/BlasterTypes/CombatStateTypes.h"
 #include "GameFramework/Character.h"
 #include "BlasterCaster/BlasterTypes/TurningInPlace.h"
 #include "BlasterCaster/Interfaces/InteractWithCrosshair.h"
@@ -44,6 +45,7 @@ protected:
 	void AimButtonReleased();
 	void FireButtonPressed();
 	void FireButtonReleased();
+	void ReloadButtonPressed();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
 	
@@ -82,7 +84,7 @@ private:
 	UFUNCTION()
 	void OnRep_OverlappingWeapon(AWeapon* LastWeapon);
 
-	UPROPERTY(VisibleDefaultsOnly)
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UCombatComponent* CombatComponent;
 
 	UFUNCTION(Server, Reliable)
@@ -102,6 +104,9 @@ private:
 	ETurningState TurningState;
 	void TurnInPlace(float DeltaTime);
 
+	/*
+	 *Animation Montages
+	 */
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	class UAnimMontage* FireWeaponMontage;
 
@@ -110,6 +115,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly,Category=Combat)
 	UAnimMontage* ElimMontage;
+
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* ReloadMontage;
 
 	void HideCharacterIfCharacterClose();
 
@@ -211,9 +219,11 @@ public:
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	ECombatState GetCurrentCombatState() const;
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
+	void PlayReloadMontage();
 	FVector GetHitTarget() const;
 
 	UFUNCTION(NetMulticast,Reliable)

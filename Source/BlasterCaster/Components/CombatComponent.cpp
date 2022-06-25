@@ -67,6 +67,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
+	DOREPLIFETIME(UCombatComponent, CurrentCombatState);
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 }
 
@@ -117,12 +118,6 @@ void UCombatComponent::Fire()
 		}
 		StartFireTimer();
 		bCanFire = false;
-		return;
-	}
-	if(bFireButtonPressed && bCanFire)
-	{
-		StartFireTimer();
-		bCanFire = false;
 	}
 }
 
@@ -143,7 +138,7 @@ void UCombatComponent::ServerFireButtonPressed_Implementation(const FVector_NetQ
 void UCombatComponent::MulticastFireButtonPressed_Implementation(const FVector_NetQuantize& TraceHitTarget)
 {
 	if(!EquippedWeapon) return;
-	if(Character)
+	if(Character && CurrentCombatState == ECombatState::ECS_Unoccupied)
 	{
 		Character->PlayFireMontage(bAiming);
 		EquippedWeapon->FireWeapon(TraceHitTarget);
@@ -308,6 +303,55 @@ void UCombatComponent::EquipWeapon(AWeapon* WeaponToEquip)
 	}
 }
 
+void UCombatComponent::Reload()
+{
+	if(!Character || !EquippedWeapon) return;
+
+	if(CarriedAmmo > 0 && CurrentCombatState != ECombatState::ECS_Reloading)
+	{
+		ServerReload();
+	}
+}
+
+void UCombatComponent::FinishReloading()
+{
+	if(Character == nullptr) return;
+	if(Character->HasAuthority())
+	{
+		CurrentCombatState = ECombatState::ECS_Unoccupied;
+	}
+	if(bFireButtonPressed)
+	{
+		Fire();
+	}
+}
+
+void UCombatComponent::ServerReload_Implementation()
+{
+	if(!Character) return;
+
+	CurrentCombatState = ECombatState::ECS_Reloading;
+	HandleReload();
+}
+
+void UCombatComponent::HandleReload()
+{
+	Character->PlayReloadMontage();
+}
+
+void UCombatComponent::OnRep_CombatState()
+{
+	switch (CurrentCombatState)
+	{
+	case ECombatState::ECS_Reloading:
+		HandleReload();
+		break;
+	case ECombatState::ECS_Unoccupied:
+		Fire();
+		break;
+	}
+}
+
 void UCombatComponent::InterpFOV(float DeltaTime)
 {
 	if(!EquippedWeapon || !Character || !Character->GetFollowCamera()) return;
@@ -329,7 +373,7 @@ void UCombatComponent::FireTimerFinished()
 	if(!EquippedWeapon) return;
 	
 	bCanFire = true;
-	if(bFireButtonPressed && EquippedWeapon->GetIsAutomatic())
+	if(bFireButtonPressed && EquippedWeapon->GetIsAutomatic() && !EquippedWeapon->IsEmpty())
 	{
 		Fire();
 	}
@@ -345,8 +389,7 @@ void UCombatComponent::StartFireTimer()
 bool UCombatComponent::CanFire() const
 {
 	if(EquippedWeapon == nullptr || Character == nullptr) return false;
-	if(Character->GetIsRunning()) return false;
-	return !EquippedWeapon->IsEmpty() || !bCanFire;
+	return !EquippedWeapon->IsEmpty() && bCanFire && CurrentCombatState == ECombatState::ECS_Unoccupied;
 }
 
 void UCombatComponent::OnRep_CarriedAmmo()

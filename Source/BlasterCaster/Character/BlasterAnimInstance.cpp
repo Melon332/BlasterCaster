@@ -6,6 +6,7 @@
 #include "BlasterCaster/Weapons/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterCaster/BlasterTypes/CombatStateTypes.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -72,6 +73,8 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	TurningInPlaceState = BlasterCharacter->GetTurningInPlace();
+
+	bUseFABRIK = BlasterCharacter->GetCurrentCombatState() != ECombatState::ECS_Reloading;
 }
 
 void UBlasterAnimInstance::CalculateCharacterRotationAndLean(float DeltaTime)

@@ -23,6 +23,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "BlasterCaster/Weapons/WeaponTypes.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -156,6 +157,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &ThisClass::StartSprinting);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &ThisClass::StopSprinting);
+
+	PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &ThisClass::ReloadButtonPressed);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -278,6 +281,14 @@ void ABlasterCharacter::FireButtonReleased()
 	if(CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(false);
+	}
+}
+
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->Reload();
 	}
 }
 
@@ -520,6 +531,12 @@ bool ABlasterCharacter::IsAiming()
 	return CombatComponent && CombatComponent->bAiming;
 }
 
+ECombatState ABlasterCharacter::GetCurrentCombatState() const
+{
+	if(!CombatComponent) return ECombatState::ECS_MAX;
+	return CombatComponent->CurrentCombatState;
+}
+
 AWeapon* ABlasterCharacter::GetEquippedWeapon()
 {
 	if(!CombatComponent) return nullptr;
@@ -535,6 +552,25 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
 		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABlasterCharacter::PlayReloadMontage()
+{
+	if(!CombatComponent || !CombatComponent->EquippedWeapon) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+		switch (CombatComponent->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
@@ -637,12 +673,13 @@ void ABlasterCharacter::EliminatedTimerFinished()
 
 void ABlasterCharacter::StartSprinting()
 {
-	if(CombatComponent && CombatComponent->IsFiring()) return;
+	if(!CombatComponent) return;
 	
 	if(CombatComponent->bAiming)
 	{
 		CombatComponent->SetAiming(false);
 	}
+	CombatComponent->CurrentCombatState = ECombatState::ECS_Sprinting;
 	
 	bIsRunning = true;
 	ServerSprinting(bIsRunning);
@@ -650,7 +687,6 @@ void ABlasterCharacter::StartSprinting()
 	{
 		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
 	}
-	UE_LOG(LogTemp,Warning,TEXT("Runspeed %f"), GetCharacterMovement()->MaxWalkSpeed);
 }
 
 void ABlasterCharacter::StopSprinting()
@@ -662,6 +698,14 @@ void ABlasterCharacter::StopSprinting()
 	{
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	}
+	CombatComponent->CurrentCombatState = ECombatState::ECS_Unoccupied;
+
+	
+	if(CombatComponent->EquippedWeapon && CombatComponent->bFireButtonPressed)
+	{
+		CombatComponent->Fire();
+	}
+	
 }
 
 void ABlasterCharacter::MulticastEliminated_Implementation()

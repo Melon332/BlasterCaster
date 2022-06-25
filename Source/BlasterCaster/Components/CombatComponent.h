@@ -6,8 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "BlasterCaster/Widgets/BlasterHUD.h"
 #include "BlasterCaster/Weapons/WeaponTypes.h"
+#include "BlasterCaster/BlasterTypes/CombatStateTypes.h"
 #include "CombatComponent.generated.h"
-
 
 #define TRACE_LENGTH 80000
 
@@ -48,9 +48,19 @@ protected:
 	void TraceUnderCrossHair(FHitResult& HitResult);
 
 	void SetHUDCrosshairs(float DeltaTime);
+
+	UFUNCTION(Server,Reliable)
+	void ServerReload();
+
+	void HandleReload();
 	
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
+
+	void Reload();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
@@ -151,4 +161,11 @@ private:
 	int32 StartingARAmmo{30};
 	
 	void InitalizeCarriedAmmo();
+
+	UPROPERTY(ReplicatedUsing=OnRep_CombatState)
+	ECombatState CurrentCombatState{ECombatState::ECS_Unoccupied};
+
+	UFUNCTION()
+	void OnRep_CombatState();
+	
 };
