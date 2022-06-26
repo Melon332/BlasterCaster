@@ -65,6 +65,7 @@ public:
 	FORCEINLINE int32 GetCurrentAmmo() const { return CurrentAmmo; }
 	FORCEINLINE int32 GetMaxMagCapacity() const { return MaxMagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return CurrentWeaponType; }
+	FORCEINLINE FString GetWeaponName() const { return WeaponName; }
 	
 	virtual void FireWeapon(const FVector& HitTarget);
 
@@ -146,4 +147,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	EWeaponType CurrentWeaponType;
+
+	UPROPERTY(EditDefaultsOnly)
+	FString WeaponName;
 };

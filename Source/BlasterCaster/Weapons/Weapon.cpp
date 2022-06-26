@@ -181,6 +181,7 @@ void AWeapon::UpdateAmmoHUD()
 		if(BlasterOwnerController)
 		{
 			BlasterOwnerController->SetHUDWeaponAmmo(CurrentAmmo);
+			BlasterOwnerController->SetHUDWeaponName(WeaponName);
 		}
 	}
 }

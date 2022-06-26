@@ -107,6 +107,15 @@ void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	}
 }
 
+void ABlasterPlayerController::SetHUDWeaponName(FString WeaponName)
+{
+	bool bHUDValid = BlasterHUD && BlasterHUD->CharacterOverlay && BlasterHUD->CharacterOverlay->WeaponName;
+	if(bHUDValid)
+	{
+		BlasterHUD->CharacterOverlay->WeaponName->SetText(FText::FromString(WeaponName));
+	}
+}
+
 void ABlasterPlayerController::ActivateEliminatedText()
 {
 	bool bHUDValid = BlasterHUD &&
