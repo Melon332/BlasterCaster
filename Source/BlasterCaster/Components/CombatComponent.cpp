@@ -323,6 +323,7 @@ void UCombatComponent::Reload()
 {
 	if(!Character || !EquippedWeapon) return;
 
+	if(EquippedWeapon->GetCurrentAmmo() >= EquippedWeapon->GetMaxMagCapacity()) return;
 	if(CarriedAmmo > 0 && CurrentCombatState != ECombatState::ECS_Reloading)
 	{
 		ServerReload();
