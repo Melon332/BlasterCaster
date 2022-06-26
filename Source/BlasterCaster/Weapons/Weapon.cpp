@@ -180,8 +180,19 @@ void AWeapon::UpdateAmmoHUD()
 
 		if(BlasterOwnerController)
 		{
+			FString WeaponType;
+			switch (CurrentWeaponType)
+			{
+			case EWeaponType::EWT_AssaultRifle:
+				WeaponType = TEXT("Assault Rifle");
+				break;
+				case EWeaponType::EWT_Pistol:
+					WeaponType = TEXT("Pistol");
+				break;
+			default: break;
+			}
 			BlasterOwnerController->SetHUDWeaponAmmo(CurrentAmmo);
-			BlasterOwnerController->SetHUDWeaponName(WeaponName);
+			BlasterOwnerController->SetHUDWeaponName(WeaponName, WeaponType);
 		}
 	}
 }
@@ -191,6 +202,7 @@ void AWeapon::SpendRound()
 	CurrentAmmo = FMath::Clamp(CurrentAmmo - 1, 0, MaxMagCapacity);
 	UpdateAmmoHUD();
 }
+
 
 void AWeapon::ShowPickUpWidget(bool bShowWidget)
 {

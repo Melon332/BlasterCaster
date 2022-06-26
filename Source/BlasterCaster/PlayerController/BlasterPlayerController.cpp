@@ -107,12 +107,13 @@ void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	}
 }
 
-void ABlasterPlayerController::SetHUDWeaponName(FString WeaponName)
+void ABlasterPlayerController::SetHUDWeaponName(FString WeaponName, FString WeaponType)
 {
 	bool bHUDValid = BlasterHUD && BlasterHUD->CharacterOverlay && BlasterHUD->CharacterOverlay->WeaponName;
 	if(bHUDValid)
 	{
-		BlasterHUD->CharacterOverlay->WeaponName->SetText(FText::FromString(WeaponName));
+		FString WeaponText = FString::Printf(TEXT("%s - %s"), *WeaponName, *WeaponType);
+		BlasterHUD->CharacterOverlay->WeaponName->SetText(FText::FromString(WeaponText));
 	}
 }
 

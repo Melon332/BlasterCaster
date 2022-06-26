@@ -713,7 +713,7 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	if(BlasterPlayerController)
 	{
 		BlasterPlayerController->SetHUDWeaponAmmo(0);
-		BlasterPlayerController->SetHUDWeaponName(FString(""));
+		BlasterPlayerController->SetHUDWeaponName(FString(""), FString(""));
 	}
 	bEliminated = true;
 	PlayElimMontage();

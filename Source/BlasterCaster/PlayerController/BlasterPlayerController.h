@@ -19,7 +19,7 @@ public:
 	void SetHUDDefeat(int32 Deaths);
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
-	void SetHUDWeaponName(FString WeaponName);
+	void SetHUDWeaponName(FString WeaponName, FString WeaponType);
 	void ActivateEliminatedText();
 	void DeactivateEliminatedText();
 protected:
