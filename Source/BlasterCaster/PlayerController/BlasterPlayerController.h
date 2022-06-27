@@ -21,6 +21,7 @@ public:
 	void SetHUDCarriedAmmo(int32 Ammo);
 	void SetHUDWeaponName(FString WeaponName, FString WeaponType);
 	void SetHUDMatchCountdown(float CountdownTime);
+	void SetHUDWarmupCountdown(float WarmupCountdown);
 	void ActivateEliminatedText();
 	void DeactivateEliminatedText();
 	void OnMatchStateSet(FName State);
@@ -36,6 +37,9 @@ protected:
 	void CheckTimeSync(float DeltaSeconds);
 	
 	void PollInit();
+
+	void HandleMatchHasStarted();
+	void HandleCooldownHasStarted();
 
 	/*
 	 *Sync time between client and server
@@ -55,12 +59,21 @@ protected:
 	float TimeSyncFrequency{5.f}; //Sync up with server time
 
 	float TimeSyncRunningTime{0.f}; //Current sync time
+
+	UFUNCTION(Server, Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client, Reliable)
+	void ClientJoinMidGame(FName StateOfMatch, float Warmup, float Match, float StartingTime, float Cooldown);
 private:
 	UPROPERTY()
 	class ABlasterHUD* BlasterHUD;
 
 	UPROPERTY(EditDefaultsOnly)
-	float MatchTime{120.f};
+	float MatchTime{0};
+	float WarmupTime{0};
+	float CooldownTime{0};
+	float LevelStartingTime{0};
 	uint32 CountdownInt{0};
 
 	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
@@ -79,4 +92,5 @@ private:
 
 	float HUDScore;
 	int32 HUDDefeats;
+	class ABlasterGameMode* BlasterGameMode;
 };

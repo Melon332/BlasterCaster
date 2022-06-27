@@ -31,11 +31,18 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
 	TSubclassOf<class UUserWidget> CharacterOverlayClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	TSubclassOf<UUserWidget> AnnouncementOverlayClass;
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
 
+	UPROPERTY()
+	class UAnnouncement* AnnouncementOverlay;
+
 	void AddCharacterOverlay();
+	void AddAnnouncementOverlay();
 protected:
 	virtual void BeginPlay() override;
 private:
