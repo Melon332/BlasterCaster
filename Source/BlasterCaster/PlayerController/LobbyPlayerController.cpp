@@ -10,9 +10,7 @@
 #include "BlasterCaster/Widgets/LobbyCharacterOverlay.h"
 #include "Components/TextBlock.h"
 #include "BlasterCaster/Widgets/LobbyHUD.h"
-#include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
-#include "BlasterCaster/GameMode/LobbyGameMode.h"
 #include "BlasterCaster/Widgets/Announcement.h"
 
 void ALobbyPlayerController::BeginPlay()
@@ -90,7 +88,6 @@ void ALobbyPlayerController::ClientGetMatchStateInformation_Implementation(FName
 	CurrentTimer = CurrentTime;
 	LevelStartingTimer = StartingTime;
 	OnMatchStateSet(CurrentMatchState);
-	GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Blue, FString::Printf(TEXT("CLIENT: Match state is: %s"), *CurrentMatchState.ToString()));
 }
 
 void ALobbyPlayerController::ServerCheckMatchState_Implementation()
@@ -100,7 +97,6 @@ void ALobbyPlayerController::ServerCheckMatchState_Implementation()
 		CurrentMatchState = LobbyGameMode->GetMatchState();
 		CurrentTimer = LobbyGameMode->CurrentCountdownTime;
 		LevelStartingTimer = LobbyGameMode->LevelStartingTimer;
-		GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Blue, FString::Printf(TEXT("Match state is: %s"), *CurrentMatchState.ToString()));
 		ClientGetMatchStateInformation(CurrentMatchState, CurrentTimer, LevelStartingTimer);
 	}
 }
@@ -148,10 +144,6 @@ void ALobbyPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 void ALobbyPlayerController::OnMatchStateSet(FName MatchState)
 {
 	CurrentMatchState = MatchState;
-	if(GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 15, FColor::Blue, FString::Printf(TEXT("Match state set to: %s"), *FString(MatchState.ToString())));
-	}
 	if(MatchState == MatchState::AllPlayersReady)
 	{
 		HandleAllPlayersJoined();
