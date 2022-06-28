@@ -757,7 +757,6 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 
 	//Disables Character movement
 	GetCharacterMovement()->DisableMovement();
-	GetCharacterMovement()->StopMovementImmediately();
 	bDisableGameplay = true;
 	if(CombatComponent)
 	{

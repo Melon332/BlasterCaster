@@ -24,6 +24,7 @@ public:
 	void SetHUDWarmupCountdown(float WarmupCountdown);
 	void ActivateEliminatedText();
 	void DeactivateEliminatedText();
+	void ChangeColorOfText(float Minutes, float Seconds, class UTextBlock* TextBlock);
 	void OnMatchStateSet(FName State);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -79,6 +80,9 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
 	FName MatchState;
 
+	UPROPERTY(EditDefaultsOnly)
+	float TimerBlinking{30};
+
 	UFUNCTION()
 	void OnRep_MatchState();
 
@@ -93,4 +97,7 @@ private:
 	float HUDScore;
 	int32 HUDDefeats;
 	class ABlasterGameMode* BlasterGameMode;
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor ColorWhenBlinking;
 };

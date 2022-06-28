@@ -162,6 +162,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	int32 StartingARAmmo{30};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingRocketAmmo{0};
 	
 	void InitalizeCarriedAmmo();
 

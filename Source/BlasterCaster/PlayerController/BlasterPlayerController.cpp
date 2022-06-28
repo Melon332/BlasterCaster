@@ -244,6 +244,7 @@ void ABlasterPlayerController::SetHUDMatchCountdown(float CountdownTime)
 		int32 Seconds = CountdownTime - Minutes * 60;
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes, Seconds);
 		BlasterHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
+		ChangeColorOfText(Minutes, Seconds, BlasterHUD->CharacterOverlay->MatchCountdownText);
 	}
 }
 
@@ -261,6 +262,7 @@ void ABlasterPlayerController::SetHUDWarmupCountdown(float WarmupCountdown)
 		int32 Seconds = WarmupCountdown - Minutes * 60;
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes, Seconds);
 		BlasterHUD->AnnouncementOverlay->CountdownTime->SetText(FText::FromString(CountdownText));
+		ChangeColorOfText(Minutes, Seconds, BlasterHUD->CharacterOverlay->MatchCountdownText);
 	}
 }
 
@@ -288,12 +290,20 @@ void ABlasterPlayerController::DeactivateEliminatedText()
 	}
 }
 
+void ABlasterPlayerController::ChangeColorOfText(float Minutes, float Seconds, UTextBlock* TextBlock)
+{
+	if(Minutes == 0 && Seconds <= TimerBlinking)
+	{
+		TextBlock->SetColorAndOpacity(FSlateColor(ColorWhenBlinking));
+	}
+}
+
 void ABlasterPlayerController::HandleMatchHasStarted()
 {
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
 	if(BlasterHUD)
 	{
-		BlasterHUD->AddCharacterOverlay();
+		if(BlasterHUD->CharacterOverlay == nullptr) BlasterHUD->AddCharacterOverlay();
 		if(BlasterHUD->AnnouncementOverlay)
 		{
 			BlasterHUD->AnnouncementOverlay->SetVisibility(ESlateVisibility::Collapsed);
