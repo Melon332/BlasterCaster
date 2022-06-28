@@ -10,7 +10,8 @@
 #include "BlasterCaster/Widgets/LobbyCharacterOverlay.h"
 #include "Components/TextBlock.h"
 #include "BlasterCaster/Widgets/LobbyHUD.h"
-#include "GameFramework/GameStateBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "BlasterCaster/Widgets/Announcement.h"
 
 void ALobbyPlayerController::BeginPlay()
 {
@@ -29,6 +30,75 @@ void ALobbyPlayerController::BeginPlay()
 		}
 	}
 	UpdatePlayerAmount();
+	ServerCheckMatchState();
+}
+
+void ALobbyPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	if(CurrentMatchState == MatchState::AllPlayersReady)
+	{
+		CurrentTimer -= DeltaSeconds;
+		UpdateAnnouncementTimer(CurrentTimer);
+	}
+}
+
+void ALobbyPlayerController::OnRep_MatchState()
+{
+	if(CurrentMatchState == MatchState::AllPlayersReady)
+	{
+		HandleAllPlayersJoined();
+	}
+}
+
+void ALobbyPlayerController::HandleAllPlayersJoined()
+{
+	LobbyHUD = LobbyHUD == nullptr ? Cast<ALobbyHUD>(GetHUD()) : LobbyHUD;
+	if(LobbyHUD)
+	{
+		if(LobbyHUD->LobbyCharacterOverlay)
+		{
+			LobbyHUD->LobbyCharacterOverlay->RemoveFromParent();
+		}
+		CurrentTimer = LevelStartingTimer;
+		LobbyHUD->AddAnnouncementTimerToDisplay();
+	}
+}
+
+void ALobbyPlayerController::UpdateAnnouncementTimer(float Timer)
+{
+	bool bHUDValid = LobbyHUD && LobbyHUD->AnnouncementOverlay && LobbyHUD->AnnouncementOverlay->CountdownTime;
+	if(bHUDValid)
+	{
+		if(Timer < 0.f)
+		{
+			LobbyHUD->AnnouncementOverlay->CountdownTime->SetText(FText());
+			return;
+		}
+		int32 Minutes = FMath::FloorToInt(Timer / 60);
+		int32 Seconds = Timer - Minutes * 60;
+		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes, Seconds);
+		LobbyHUD->AnnouncementOverlay->CountdownTime->SetText(FText::FromString(CountdownText));
+	}
+}
+
+void ALobbyPlayerController::ClientGetMatchStateInformation_Implementation(FName MatchState, float CurrentTime, float StartingTime)
+{
+	CurrentMatchState = MatchState;
+	CurrentTimer = CurrentTime;
+	LevelStartingTimer = StartingTime;
+	OnMatchStateSet(CurrentMatchState);
+}
+
+void ALobbyPlayerController::ServerCheckMatchState_Implementation()
+{
+	if(ALobbyGameMode* LobbyGameMode = Cast<ALobbyGameMode>(UGameplayStatics::GetGameMode(this)))
+	{
+		CurrentMatchState = LobbyGameMode->GetMatchState();
+		CurrentTimer = LobbyGameMode->CurrentCountdownTime;
+		LevelStartingTimer = LobbyGameMode->LevelStartingTimer;
+		ClientGetMatchStateInformation(CurrentMatchState, CurrentTimer, LevelStartingTimer);
+	}
 }
 
 void ALobbyPlayerController::UpdatePlayerAmount()
@@ -38,10 +108,8 @@ void ALobbyPlayerController::UpdatePlayerAmount()
 		LobbyHUD = LobbyHUD == nullptr ? Cast<ALobbyHUD>(GetHUD()) : LobbyHUD;
 		if(LobbyHUD)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Orange, TEXT("Lobby HUD is valid!"));
 			if(LobbyHUD && LobbyHUD->LobbyCharacterOverlay && LobbyHUD->LobbyCharacterOverlay->NumberPlayerCount)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Orange, TEXT("Lobby Hud and Lobby Overlay and Player Count textbox is valid!"));
 				FString PlayerNumber = FString::Printf(TEXT("%d/%d"), LobbyGameState->Players, LobbyGameState->MaxPlayers);
 				LobbyHUD->LobbyCharacterOverlay->NumberPlayerCount->SetText(FText::FromString(PlayerNumber));
 			}
@@ -55,6 +123,29 @@ void ALobbyPlayerController::EndPlay(const EEndPlayReason::Type EndPlayReason)
 
 	if(LobbyHUD)
 	{
-		LobbyHUD->LobbyCharacterOverlay->RemoveFromParent();
+		if(LobbyHUD->LobbyCharacterOverlay)
+		{
+			LobbyHUD->LobbyCharacterOverlay->RemoveFromParent();
+		}
+		if(LobbyHUD->AnnouncementOverlay)
+		{
+			LobbyHUD->AnnouncementOverlay->RemoveFromParent();
+		}
+	}
+}
+
+void ALobbyPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ALobbyPlayerController, CurrentMatchState);
+}
+
+void ALobbyPlayerController::OnMatchStateSet(FName MatchState)
+{
+	CurrentMatchState = MatchState;
+	if(MatchState == MatchState::AllPlayersReady)
+	{
+		HandleAllPlayersJoined();
 	}
 }

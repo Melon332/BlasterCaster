@@ -23,6 +23,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "Sound/SoundCue.h"
+#include "BlasterCaster/Weapons/WeaponTypes.h"
 
 ABlasterCharacter::ABlasterCharacter()
 {
@@ -73,6 +74,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
 	DOREPLIFETIME(ABlasterCharacter, bIsRunning);
+	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
 
 void ABlasterCharacter::UpdateHUDHealth()
@@ -97,18 +99,32 @@ void ABlasterCharacter::BeginPlay()
 	{
 		BlasterPlayerController->DeactivateEliminatedText();
 	}
-
+	
 	if(HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 }
 
+
 // Called every frame
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	RotateInPlace(DeltaTime);
+	PollInit();
+	HideCharacterIfCharacterClose();
+}
+
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if(bDisableGameplay)
+	{
+		TurningState = ETurningState::ETIP_NOTTURNING;
+		bUseControllerRotationYaw = true;
+		return;
+	}
 	if(GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
 	{
 		AimOffset(DeltaTime);
@@ -122,8 +138,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 			OnRep_ReplicatedMovement();
 		}
 	}
-	PollInit();
-	HideCharacterIfCharacterClose();
 }
 
 // Called to bind functionality to input
@@ -151,6 +165,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &ThisClass::StartSprinting);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &ThisClass::StopSprinting);
+
+	PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &ThisClass::ReloadButtonPressed);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -178,6 +194,14 @@ void ABlasterCharacter::Destroyed()
 	{
 		ParticleSystemComponentBot->DestroyComponent();
 	}
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	
+	bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	
+	if(CombatComponent && CombatComponent->EquippedWeapon && bMatchNotInProgress)
+	{
+		CombatComponent->EquippedWeapon->Destroy();
+	}
 }
 
 void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
@@ -187,7 +211,7 @@ void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
 		if(ABlasterGameMode* BlasterGameMode = GetWorld()->GetAuthGameMode<ABlasterGameMode>())
 		{
 			BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
-			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, nullptr);
+			BlasterGameMode->PlayerEliminated(this, BlasterPlayerController, BlasterPlayerController);
 			SetDiedFromFalling(true);
 		}
 	}
@@ -195,6 +219,7 @@ void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
 
 void ABlasterCharacter::MoveForward(float value)
 {
+	if(bDisableGameplay) return;
 	if(Controller && value != 0)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -205,6 +230,7 @@ void ABlasterCharacter::MoveForward(float value)
 
 void ABlasterCharacter::MoveRight(float value)
 {
+	if(bDisableGameplay) return;
 	if(Controller && value != 0)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -246,6 +272,7 @@ void ABlasterCharacter::CrouchButtonReleased()
 
 void ABlasterCharacter::AimButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->SetAiming(true);
@@ -254,7 +281,8 @@ void ABlasterCharacter::AimButtonPressed()
 
 void ABlasterCharacter::AimButtonReleased()
 {
-	if(CombatComponent)
+	if(bDisableGameplay) return;
+	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->SetAiming(false);
 	}
@@ -262,7 +290,8 @@ void ABlasterCharacter::AimButtonReleased()
 
 void ABlasterCharacter::FireButtonPressed()
 {
-	if(CombatComponent && !bIsRunning)
+	if(bDisableGameplay) return;
+	if(CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(true);
 	}
@@ -270,14 +299,25 @@ void ABlasterCharacter::FireButtonPressed()
 
 void ABlasterCharacter::FireButtonReleased()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(false);
 	}
 }
 
+void ABlasterCharacter::ReloadButtonPressed()
+{
+	if(bDisableGameplay) return;
+	if(CombatComponent)
+	{
+		CombatComponent->Reload();
+	}
+}
+
 void ABlasterCharacter::EquipButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
 		if(HasAuthority())
@@ -365,6 +405,7 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 
 void ABlasterCharacter::Jump()
 {
+	if(bDisableGameplay) return;
 	if(bIsCrouched)
 	{
 		UnCrouch();
@@ -397,10 +438,6 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddToScore(0.f);
 			BlasterPlayerState->AddToDefeats(0);
-			if(UOverHeadWidget* Widget = Cast<UOverHeadWidget>(OverHeadWidget))
-			{
-				Widget->ShowPlayerNetRole(this);
-			}
 		}
 	}
 }
@@ -519,6 +556,12 @@ bool ABlasterCharacter::IsAiming()
 	return CombatComponent && CombatComponent->bAiming;
 }
 
+ECombatState ABlasterCharacter::GetCurrentCombatState() const
+{
+	if(!CombatComponent) return ECombatState::ECS_MAX;
+	return CombatComponent->CurrentCombatState;
+}
+
 AWeapon* ABlasterCharacter::GetEquippedWeapon()
 {
 	if(!CombatComponent) return nullptr;
@@ -534,6 +577,25 @@ void ABlasterCharacter::PlayFireMontage(bool bAiming)
 	{
 		AnimInstance->Montage_Play(FireWeaponMontage);
 		FName SectionName = bAiming ? FName("RifleAim") : FName("RifleHip");
+		AnimInstance->Montage_JumpToSection(SectionName);
+	}
+}
+
+void ABlasterCharacter::PlayReloadMontage()
+{
+	if(!CombatComponent || !CombatComponent->EquippedWeapon) return;
+
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && ReloadMontage)
+	{
+		AnimInstance->Montage_Play(ReloadMontage);
+		FName SectionName;
+		switch (CombatComponent->EquippedWeapon->GetWeaponType())
+		{
+		case EWeaponType::EWT_AssaultRifle:
+			SectionName = FName("Rifle");
+			break;
+		}
 		AnimInstance->Montage_JumpToSection(SectionName);
 	}
 }
@@ -636,7 +698,15 @@ void ABlasterCharacter::EliminatedTimerFinished()
 
 void ABlasterCharacter::StartSprinting()
 {
-	if(CombatComponent && CombatComponent->bAiming || CombatComponent->IsFiring()) return;
+	if(bDisableGameplay) return;
+	if(!CombatComponent) return;
+	
+	if(CombatComponent->bAiming)
+	{
+		CombatComponent->SetAiming(false);
+	}
+	CombatComponent->CurrentCombatState = ECombatState::ECS_Sprinting;
+	
 	bIsRunning = true;
 	ServerSprinting(bIsRunning);
 	if(GetCharacterMovement())
@@ -647,17 +717,31 @@ void ABlasterCharacter::StartSprinting()
 
 void ABlasterCharacter::StopSprinting()
 {
-	if(CombatComponent && CombatComponent->bAiming || CombatComponent->IsFiring()) return;
+	if(bDisableGameplay) return;
+	if(!CombatComponent) return;
 	bIsRunning = false;
 	ServerSprinting(bIsRunning);
 	if(GetCharacterMovement())
 	{
 		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	}
+	CombatComponent->CurrentCombatState = ECombatState::ECS_Unoccupied;
+
+	
+	if(CombatComponent->EquippedWeapon && CombatComponent->bFireButtonPressed)
+	{
+		CombatComponent->Fire();
+	}
+	
 }
 
 void ABlasterCharacter::MulticastEliminated_Implementation()
 {
+	if(BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDWeaponAmmo(0);
+		BlasterPlayerController->SetHUDWeaponName(FString(""), FString(""));
+	}
 	bEliminated = true;
 	PlayElimMontage();
 
@@ -674,10 +758,12 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	//Disables Character movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	if(BlasterPlayerController)
+	bDisableGameplay = true;
+	if(CombatComponent)
 	{
-		DisableInput(BlasterPlayerController);
+		CombatComponent->FireButtonPressed(false);
 	}
+	
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 

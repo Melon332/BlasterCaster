@@ -6,6 +6,7 @@
 #include "BlasterCaster/Weapons/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "BlasterCaster/BlasterTypes/CombatStateTypes.h"
 
 void UBlasterAnimInstance::NativeInitializeAnimation()
 {
@@ -55,12 +56,24 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	if(bWeaponEquipped && WeaponEquipped && WeaponEquipped->GetWeaponMesh() && BlasterCharacter->GetMesh())
 	{
-		LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
-		FVector OutPosition;
-		FRotator OutRotation;
-		BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
-		LeftHandTransform.SetLocation(OutPosition);
-		LeftHandTransform.SetRotation(FQuat(OutRotation));
+		if(BlasterCharacter->GetCurrentCombatState() == ECombatState::ECS_Reloading)
+		{
+			LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("ReloadSocket"), ERelativeTransformSpace::RTS_World);
+			FVector OutPosition;
+			FRotator OutRotation;
+			BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
+			LeftHandTransform.SetLocation(OutPosition);
+			LeftHandTransform.SetRotation(FQuat(OutRotation));
+		}
+		else
+		{
+			LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
+			FVector OutPosition;
+			FRotator OutRotation;
+			BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
+			LeftHandTransform.SetLocation(OutPosition);
+			LeftHandTransform.SetRotation(FQuat(OutRotation));
+		}
 
 		if(BlasterCharacter->IsLocallyControlled())
 		{
@@ -72,6 +85,12 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	TurningInPlaceState = BlasterCharacter->GetTurningInPlace();
+
+	bUseFABRIK = BlasterCharacter->GetCurrentCombatState() != ECombatState::ECS_Reloading;
+
+	bUseAimOffsets = BlasterCharacter->GetCurrentCombatState() != ECombatState::ECS_Reloading && !BlasterCharacter->GetDisableGameplay();
+
+	bTransformRightHand = BlasterCharacter->GetCurrentCombatState() != ECombatState::ECS_Reloading && !BlasterCharacter->GetDisableGameplay();
 }
 
 void UBlasterAnimInstance::CalculateCharacterRotationAndLean(float DeltaTime)

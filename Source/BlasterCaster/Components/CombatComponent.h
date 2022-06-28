@@ -5,8 +5,9 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "BlasterCaster/Widgets/BlasterHUD.h"
+#include "BlasterCaster/Weapons/WeaponTypes.h"
+#include "BlasterCaster/BlasterTypes/CombatStateTypes.h"
 #include "CombatComponent.generated.h"
-
 
 #define TRACE_LENGTH 80000
 
@@ -24,6 +25,8 @@ public:
 	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	void FireButtonPressed(bool bPressed);
 protected:
 	virtual void BeginPlay() override;
 
@@ -36,8 +39,6 @@ protected:
 	void OnRep_EquippedWeapon();
 	void Fire();
 
-	void FireButtonPressed(bool bPressed);
-
 	UFUNCTION(Server, Reliable)
 	void ServerFireButtonPressed(const FVector_NetQuantize& TraceHitTarget);
 
@@ -47,9 +48,22 @@ protected:
 	void TraceUnderCrossHair(FHitResult& HitResult);
 
 	void SetHUDCrosshairs(float DeltaTime);
+
+	UFUNCTION(Server,Reliable)
+	void ServerReload();
+
+	void HandleReload();
 	
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
+
+	void Reload();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
+
+	int32 AmountToReload();
+	void UpdateAmmoValues();
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
@@ -64,7 +78,6 @@ private:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
-	
 
 	UPROPERTY(Replicated)
 	bool bAiming;
@@ -135,4 +148,27 @@ private:
 	void FireTimerFinished();
 
 	void StartFireTimer();
+
+	bool CanFire() const;
+
+	//Carried ammo for currently equipped weapon
+	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmo)
+	int32 CarriedAmmo;
+
+	UFUNCTION()
+	void OnRep_CarriedAmmo();
+
+	TMap<EWeaponType, int32> CarriedAmmoMap;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingARAmmo{30};
+	
+	void InitalizeCarriedAmmo();
+
+	UPROPERTY(ReplicatedUsing=OnRep_CombatState)
+	ECombatState CurrentCombatState{ECombatState::ECS_Unoccupied};
+
+	UFUNCTION()
+	void OnRep_CombatState();
+	
 };

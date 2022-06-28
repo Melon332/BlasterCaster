@@ -44,45 +44,25 @@ void ABlasterPlayerState::AddToScore(float ScoreAmount)
 	}
 }
 
+void ABlasterPlayerState::UpdateDefeatHUD()
+{
+	BlasterCharacter = BlasterCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : BlasterCharacter;
+	if(BlasterCharacter && BlasterCharacter->Controller)
+	{
+		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterCharacter->Controller) : BlasterPlayerController;
+		if(BlasterPlayerController)
+		{
+			UE_LOG(LogTemp,Warning, TEXT("We managed to get the playercontroller"));
+			BlasterPlayerController->SetHUDDefeat(Defeats);
+		}
+	}
+}
+
 void ABlasterPlayerState::AddToDefeats(int32 DefeatAmount)
 {
 	Defeats += DefeatAmount;
 
-	BlasterCharacter = BlasterCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : BlasterCharacter;
-	if(BlasterCharacter && BlasterCharacter->Controller)
-	{
-		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterCharacter->Controller) : BlasterPlayerController;
-		if(BlasterPlayerController)
-		{
-			BlasterPlayerController->SetHUDDefeat(Defeats);
-			if(Defeats != 0)
-			{
-				BlasterPlayerController->ActivateEliminatedText();
-			}
-		}
-	}
-}
-
-void ABlasterPlayerState::ShowDefeatText()
-{
-	if(Defeats != 0)
-	{
-		BlasterPlayerController->ActivateEliminatedText();
-	}
-	
-}
-
-void ABlasterPlayerState::HideDefeatText()
-{
-	BlasterCharacter = BlasterCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : BlasterCharacter;
-	if(BlasterCharacter && BlasterCharacter->Controller)
-	{
-		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterCharacter->Controller) : BlasterPlayerController;
-		if(BlasterPlayerController)
-		{
-			BlasterPlayerController->DeactivateEliminatedText();
-		}
-	}
+	UpdateDefeatHUD();
 }
 
 void ABlasterPlayerState::OnRep_OnDefeats()

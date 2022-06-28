@@ -22,10 +22,9 @@ public:
 	virtual void OnRep_OnDefeats();
 	
 	void AddToScore(float ScoreAmount);
+	void UpdateDefeatHUD();
 	void AddToDefeats(int32 DefeatAmount);
-
-	void ShowDefeatText();
-	void HideDefeatText();
+	FORCEINLINE int32 GetDefeats() const { return Defeats; }
 protected:
 	
 private:

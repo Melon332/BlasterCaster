@@ -15,12 +15,19 @@ class BLASTERCASTER_API ALobbyHUD : public AHUD
 	GENERATED_BODY()
 public:
 	void AddLobbyDisplay();
+	void AddAnnouncementTimerToDisplay();
 	
 	UPROPERTY(EditDefaultsOnly, Category="Lobby")
 	TSubclassOf<class UUserWidget> LobbyCharacterOverlayClass;
 
 	UPROPERTY()
 	class ULobbyCharacterOverlay* LobbyCharacterOverlay;
+
+	UPROPERTY(EditDefaultsOnly, Category="Lobby")
+	TSubclassOf<UUserWidget> AnnouncementOverlayClass;
+
+	UPROPERTY()
+	class UAnnouncement* AnnouncementOverlay;
 protected:
 private:
 };

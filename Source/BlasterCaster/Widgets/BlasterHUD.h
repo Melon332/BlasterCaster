@@ -11,7 +11,6 @@ USTRUCT(BlueprintType)
 struct FHUDPackage
 {
 	GENERATED_BODY();
-public:
 	UTexture2D* CrosshairCenter;
 	UTexture2D* CrosshairBottom;
 	UTexture2D* CrosshairLeft;
@@ -32,12 +31,20 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
 	TSubclassOf<class UUserWidget> CharacterOverlayClass;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	TSubclassOf<UUserWidget> AnnouncementOverlayClass;
 
+	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
+
+	UPROPERTY()
+	class UAnnouncement* AnnouncementOverlay;
+
+	void AddCharacterOverlay();
+	void AddAnnouncementOverlay();
 protected:
 	virtual void BeginPlay() override;
-	
-	void AddCharacterOverlay();
 private:
 	FHUDPackage HUDPackage;
 

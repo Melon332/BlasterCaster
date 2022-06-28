@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "BlasterCaster/Weapons/WeaponTypes.h"
 #include "Weapon.generated.h"
 
 UENUM(BlueprintType)
@@ -15,6 +16,7 @@ enum class EWeaponState : uint8
 	
 	EWS_MAX UMETA(DisplayName = "Default Max")
 };
+
 class USphereComponent;
 UCLASS()
 class BLASTERCASTER_API AWeapon : public AActor
@@ -27,9 +29,12 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void ShowPickUpWidget(bool bShowWidget);
 	void Dropped();
+	void AddAmmo(int32 AmmoToAdd);
+	void PlayReloadWeaponAnimation();
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void OnRep_Owner() override;
 	UFUNCTION()
 	virtual void OnSphereOverlap(
 		UPrimitiveComponent* PrimitiveComponent,
@@ -56,9 +61,15 @@ public:
 	FORCEINLINE float GetFireRate() const { return FireDelay; }
 	
 	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
+	FORCEINLINE bool IsEmpty() const { return CurrentAmmo <= 0; }
+	FORCEINLINE int32 GetCurrentAmmo() const { return CurrentAmmo; }
+	FORCEINLINE int32 GetMaxMagCapacity() const { return MaxMagCapacity; }
+	FORCEINLINE EWeaponType GetWeaponType() const { return CurrentWeaponType; }
+	FORCEINLINE FString GetWeaponName() const { return WeaponName; }
 	
 	virtual void FireWeapon(const FVector& HitTarget);
 
+	void UpdateAmmoHUD();
 	
 	//Textures for the weapon crosshairs
 	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
@@ -75,6 +86,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Crosshairs")
 	UTexture2D* CrosshairBottom;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* EquipSound;
 	
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category="Weapon Properties")
@@ -95,6 +109,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	class UAnimationAsset* FireAnimation;
 
+	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
+	UAnimationAsset* ReloadAnimation;
+
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class ACasing> CasingClass;
 
@@ -110,4 +127,27 @@ private:
 
 	UPROPERTY(EditAnywhere, Category="Combat")
 	bool bAutomatic;
+
+	UPROPERTY(VisibleDefaultsOnly, ReplicatedUsing=OnRep_Ammo)
+	int32 CurrentAmmo;
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxMagCapacity;
+
+	UFUNCTION()
+	void OnRep_Ammo();
+
+	void SpendRound();
+
+	UPROPERTY()
+	class ABlasterCharacter* BlasterOwnerCharacter;
+	
+	UPROPERTY()
+	class ABlasterPlayerController* BlasterOwnerController;
+
+	UPROPERTY(EditDefaultsOnly)
+	EWeaponType CurrentWeaponType;
+
+	UPROPERTY(EditDefaultsOnly)
+	FString WeaponName;
 };

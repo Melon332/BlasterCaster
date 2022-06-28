@@ -20,8 +20,33 @@ public:
 	void UpdatePlayerAmount();
 
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	virtual void OnMatchStateSet(FName MatchState);
 protected:
 
 	virtual void BeginPlay() override;
+
+	virtual void Tick(float DeltaSeconds) override;
 private:
+	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
+	FName CurrentMatchState;
+
+	UFUNCTION()
+	void OnRep_MatchState();
+
+	UFUNCTION(Server,Reliable)
+	void ServerCheckMatchState();
+
+	UFUNCTION(Client, Reliable)
+	void ClientGetMatchStateInformation(FName MatchState, float Timer, float StartingTime);
+
+	void HandleAllPlayersJoined();
+
+	void UpdateAnnouncementTimer(float Timer);
+
+	float LevelStartingTimer{0.f};
+
+	float CurrentTimer{0.f};
 };
