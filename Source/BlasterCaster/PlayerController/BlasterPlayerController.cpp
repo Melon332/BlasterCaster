@@ -4,6 +4,7 @@
 #include "BlasterPlayerController.h"
 
 #include "BlasterCaster/Character/BlasterCharacter.h"
+#include "BlasterCaster/Components/CombatComponent.h"
 #include "BlasterCaster/PlayerState/BlasterPlayerState.h"
 #include "BlasterCaster/Widgets/BlasterHUD.h"
 #include "BlasterCaster/Widgets/CharacterOverlay.h"
@@ -14,6 +15,7 @@
 #include "BlasterCaster/GameMode/BlasterGameMode.h"
 #include "BlasterCaster/Widgets/Announcement.h"
 #include "Kismet/GameplayStatics.h"
+#include "BlasterCaster/GameStates/BlasterGameState.h"
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -313,8 +315,43 @@ void ABlasterPlayerController::HandleCooldownHasStarted()
 			BlasterHUD->AnnouncementOverlay->SetVisibility(ESlateVisibility::Visible);
 			FString AnnouncementText("New Match Starts In: ");
 			BlasterHUD->AnnouncementOverlay->StartingText->SetText(FText::FromString(AnnouncementText));
-			BlasterHUD->AnnouncementOverlay->InfoText->SetText(FText());
+
+			ABlasterPlayerState* BlasterPlayerState = GetPlayerState<ABlasterPlayerState>();
+			if(ABlasterGameState* BlasterGameState = Cast<ABlasterGameState>(UGameplayStatics::GetGameState(this)))
+			{
+				TArray<ABlasterPlayerState*> TopPlayers = BlasterGameState->TopBlasterPlayers;
+				FString TopPlayerText;
+				
+				if(TopPlayers.Num() == 0)
+				{
+					TopPlayerText = FString(TEXT("You all suck balls, no one even scored anything"));
+				}
+				else if(TopPlayers.Num() == 1 && TopPlayers[0] == BlasterPlayerState)
+				{
+					TopPlayerText = FString(TEXT("You are the winner!!!"));
+				}
+				else if(TopPlayers.Num() == 1)
+				{
+					TopPlayerText = FString::Printf(TEXT("The winner is: \n%s"),*TopPlayers[0]->GetPlayerName());
+				}
+				else if(TopPlayers.Num() > 1)
+				{
+					TopPlayerText = FString(TEXT("TIE\n"));
+					for(ABlasterPlayerState* TiedPlayer : TopPlayers)
+					{
+						TopPlayerText.Append(FString::Printf(TEXT("%s\n"), *TiedPlayer->GetName()));
+					}
+				}
+				
+				BlasterHUD->AnnouncementOverlay->InfoText->SetText(FText::FromString(TopPlayerText));
+			}
 		}
+	}
+	ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetPawn());
+	if(BlasterCharacter && BlasterCharacter->GetCombatComponent())
+	{
+		BlasterCharacter->bDisableGameplay = true;
+		BlasterCharacter->GetCombatComponent()->FireButtonPressed(false);
 	}
 }
 

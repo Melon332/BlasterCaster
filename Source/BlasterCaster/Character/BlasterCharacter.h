@@ -32,8 +32,12 @@ public:
 	virtual void Destroyed() override;
 	
 	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
+
+	UPROPERTY(Replicated)
+	bool bDisableGameplay{false};
 protected:
 	virtual void BeginPlay() override;
+	void RotateInPlace(float DeltaTime);
 
 	void MoveForward(float value);
 	void MoveRight(float value);
@@ -219,6 +223,8 @@ public:
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	ECombatState GetCurrentCombatState() const;
 	AWeapon* GetEquippedWeapon();
 

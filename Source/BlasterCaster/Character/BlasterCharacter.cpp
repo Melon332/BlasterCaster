@@ -74,6 +74,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
 	DOREPLIFETIME(ABlasterCharacter, bIsRunning);
+	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
 
 void ABlasterCharacter::UpdateHUDHealth()
@@ -98,23 +99,32 @@ void ABlasterCharacter::BeginPlay()
 	{
 		BlasterPlayerController->DeactivateEliminatedText();
 	}
-	if(BlasterPlayerState)
-	{
-		BlasterPlayerState->UpdateDefeatHUD();
-		UE_LOG(LogTemp,Warning,TEXT("Updated UI"))
-	}
-
+	
 	if(HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
 	}
 }
 
+
 // Called every frame
 void ABlasterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	RotateInPlace(DeltaTime);
+	PollInit();
+	HideCharacterIfCharacterClose();
+}
+
+void ABlasterCharacter::RotateInPlace(float DeltaTime)
+{
+	if(bDisableGameplay)
+	{
+		TurningState = ETurningState::ETIP_NOTTURNING;
+		bUseControllerRotationYaw = true;
+		return;
+	}
 	if(GetLocalRole() > ENetRole::ROLE_SimulatedProxy && IsLocallyControlled())
 	{
 		AimOffset(DeltaTime);
@@ -128,8 +138,6 @@ void ABlasterCharacter::Tick(float DeltaTime)
 			OnRep_ReplicatedMovement();
 		}
 	}
-	PollInit();
-	HideCharacterIfCharacterClose();
 }
 
 // Called to bind functionality to input
@@ -186,6 +194,14 @@ void ABlasterCharacter::Destroyed()
 	{
 		ParticleSystemComponentBot->DestroyComponent();
 	}
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	
+	bool bMatchNotInProgress = BlasterGameMode && BlasterGameMode->GetMatchState() != MatchState::InProgress;
+	
+	if(CombatComponent && CombatComponent->EquippedWeapon && bMatchNotInProgress)
+	{
+		CombatComponent->EquippedWeapon->Destroy();
+	}
 }
 
 void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
@@ -203,6 +219,7 @@ void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
 
 void ABlasterCharacter::MoveForward(float value)
 {
+	if(bDisableGameplay) return;
 	if(Controller && value != 0)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -213,6 +230,7 @@ void ABlasterCharacter::MoveForward(float value)
 
 void ABlasterCharacter::MoveRight(float value)
 {
+	if(bDisableGameplay) return;
 	if(Controller && value != 0)
 	{
 		const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
@@ -254,6 +272,7 @@ void ABlasterCharacter::CrouchButtonReleased()
 
 void ABlasterCharacter::AimButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->SetAiming(true);
@@ -262,6 +281,7 @@ void ABlasterCharacter::AimButtonPressed()
 
 void ABlasterCharacter::AimButtonReleased()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent && !bIsRunning)
 	{
 		CombatComponent->SetAiming(false);
@@ -270,6 +290,7 @@ void ABlasterCharacter::AimButtonReleased()
 
 void ABlasterCharacter::FireButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(true);
@@ -278,6 +299,7 @@ void ABlasterCharacter::FireButtonPressed()
 
 void ABlasterCharacter::FireButtonReleased()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
 		CombatComponent->FireButtonPressed(false);
@@ -286,6 +308,7 @@ void ABlasterCharacter::FireButtonReleased()
 
 void ABlasterCharacter::ReloadButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
 		CombatComponent->Reload();
@@ -294,6 +317,7 @@ void ABlasterCharacter::ReloadButtonPressed()
 
 void ABlasterCharacter::EquipButtonPressed()
 {
+	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
 		if(HasAuthority())
@@ -381,6 +405,7 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 
 void ABlasterCharacter::Jump()
 {
+	if(bDisableGameplay) return;
 	if(bIsCrouched)
 	{
 		UnCrouch();
@@ -673,6 +698,7 @@ void ABlasterCharacter::EliminatedTimerFinished()
 
 void ABlasterCharacter::StartSprinting()
 {
+	if(bDisableGameplay) return;
 	if(!CombatComponent) return;
 	
 	if(CombatComponent->bAiming)
@@ -691,6 +717,7 @@ void ABlasterCharacter::StartSprinting()
 
 void ABlasterCharacter::StopSprinting()
 {
+	if(bDisableGameplay) return;
 	if(!CombatComponent) return;
 	bIsRunning = false;
 	ServerSprinting(bIsRunning);
@@ -731,10 +758,12 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	//Disables Character movement
 	GetCharacterMovement()->DisableMovement();
 	GetCharacterMovement()->StopMovementImmediately();
-	if(BlasterPlayerController)
+	bDisableGameplay = true;
+	if(CombatComponent)
 	{
-		DisableInput(BlasterPlayerController);
+		CombatComponent->FireButtonPressed(false);
 	}
+	
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 

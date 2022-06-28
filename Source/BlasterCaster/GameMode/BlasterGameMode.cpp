@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerStart.h"
 #include "Kismet/GameplayStatics.h"
 #include "BlasterCaster/PlayerState/BlasterPlayerState.h"
+#include "BlasterCaster/GameStates/BlasterGameState.h"
 
 namespace MatchState
 {
@@ -45,6 +46,14 @@ void ABlasterGameMode::Tick(float DeltaSeconds)
 			SetMatchState(MatchState::Cooldown);
 		}
 	}
+	else if(MatchState == MatchState::Cooldown)
+	{
+		CountdownTime = CooldownDuration + WarmupTime + MatchTime - GetWorld()->GetTimeSeconds() + LevelStartingTime;
+		if(CountdownTime <= 0.f)
+		{
+			RestartGame();
+		}
+	}
 }
 
 void ABlasterGameMode::OnMatchStateSet()
@@ -67,9 +76,15 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* EliminatedPlayer,
 	ABlasterPlayerState* AttackerPlayerState = AttackerController ? Cast<ABlasterPlayerState>(AttackerController->PlayerState) : nullptr;
 	ABlasterPlayerState* VictimPlayerState = EliminatedPlayerController ? Cast<ABlasterPlayerState>(EliminatedPlayerController->PlayerState) : nullptr;
 
+	ABlasterGameState* BlasterGameState = GetGameState<ABlasterGameState>();
+
 	if(AttackerPlayerState && AttackerPlayerState != VictimPlayerState)
 	{
 		AttackerPlayerState->AddToScore(1.f);
+		if(BlasterGameState)
+		{
+			BlasterGameState->UpdateTopScore(AttackerPlayerState);
+		}
 	}
 	
 	if(VictimPlayerState)

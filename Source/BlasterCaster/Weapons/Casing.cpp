@@ -4,6 +4,7 @@
 #include "Casing.h"
 
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "Sound/SoundCue.h"
 #include "Math/UnrealMathUtility.h"
 
@@ -32,7 +33,7 @@ void ACasing::BeginPlay()
 
 	SetLifeSpan(LifeTime);
 
-	SetActorRotation(FRotator(FMath::RandRange(0,360), FMath::RandRange(0,360), FMath::RandRange(0,360)));
+	SetActorRotation(UKismetMathLibrary::RandomRotator(true));
 }
 
 void ACasing::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
