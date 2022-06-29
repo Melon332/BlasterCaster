@@ -26,6 +26,7 @@ public:
 	void DeactivateEliminatedText();
 	void ChangeColorOfText(float Minutes, float Seconds, class UTextBlock* TextBlock);
 	void OnMatchStateSet(FName State);
+	virtual void BeginPlayingState() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual float GetServerTime(); //Synced with server world clock
@@ -100,4 +101,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FLinearColor ColorWhenBlinking;
+
+	FTimerHandle TimerHandle;
 };

@@ -91,15 +91,11 @@ void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*
 	CurrentHealth = MaxHealth;
 
 	UpdateHUDHealth();
-
-	if(BlasterPlayerController)
-	{
-		BlasterPlayerController->DeactivateEliminatedText();
-	}
-	
+	*/
 	if(HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
@@ -438,6 +434,8 @@ void ABlasterCharacter::PollInit()
 		{
 			BlasterPlayerState->AddToScore(0.f);
 			BlasterPlayerState->AddToDefeats(0);
+			CurrentHealth = MaxHealth;
+			UpdateHUDHealth();
 		}
 	}
 }

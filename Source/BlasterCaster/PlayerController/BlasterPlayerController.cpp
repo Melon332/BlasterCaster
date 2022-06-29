@@ -183,7 +183,6 @@ void ABlasterPlayerController::SetHUDDefeat(int32 Deaths)
 	
 	if(bHUDValid)
 	{
-		UE_LOG(LogTemp,Warning, TEXT("The HUD is valid"));
 		FString DefeatText = FString::Printf(TEXT("%d"), Deaths);
 		BlasterHUD->CharacterOverlay->DefeatAmount->SetText(FText::FromString(DefeatText));
 	}
@@ -275,6 +274,7 @@ void ABlasterPlayerController::ActivateEliminatedText()
 	if(bHUDValid)
 	{
 		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Visible);
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::DeactivateEliminatedText, 2.5f);
 	}
 }
 
@@ -286,7 +286,7 @@ void ABlasterPlayerController::DeactivateEliminatedText()
 	
 	if(bHUDValid)
 	{
-		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Hidden);
+		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Collapsed);
 	}
 }
 
@@ -393,6 +393,12 @@ void ABlasterPlayerController::OnMatchStateSet(FName State)
 	{
 		HandleCooldownHasStarted();
 	}
+}
+
+void ABlasterPlayerController::BeginPlayingState()
+{
+	Super::BeginPlayingState();
+	DeactivateEliminatedText();
 }
 
 
