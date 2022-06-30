@@ -767,6 +767,7 @@ void ABlasterCharacter::MulticastEliminated_Implementation()
 	{
 		CombatComponent->FireButtonPressed(false);
 	}
+	bUseControllerRotationYaw = false;
 	
 	//Disable Collision
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);

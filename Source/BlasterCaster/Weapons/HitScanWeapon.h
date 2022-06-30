@@ -23,4 +23,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	class UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditDefaultsOnly)
+	UParticleSystem* BeamParticles;
 };
