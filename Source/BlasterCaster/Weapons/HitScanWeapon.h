@@ -26,4 +26,16 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	UParticleSystem* BeamParticles;
+
+	
+	UPROPERTY(EditDefaultsOnly)
+	UParticleSystem* MuzzleFlash;
+
+	
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* FireSound;
+
+	
+	UPROPERTY(EditDefaultsOnly)
+	USoundCue* HitSound;
 };

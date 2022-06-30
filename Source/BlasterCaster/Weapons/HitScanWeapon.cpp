@@ -6,6 +6,7 @@
 #include "BlasterCaster/Character/BlasterCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Sound/SoundCue.h"
 
 void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 {
@@ -41,6 +42,10 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 				{
 					UGameplayStatics::SpawnEmitterAtLocation(World, ImpactParticles, FireHit.ImpactPoint, FireHit.ImpactNormal.Rotation());
 				}
+				if(HitSound)
+				{
+					UGameplayStatics::PlaySoundAtLocation(World, HitSound, FireHit.ImpactPoint);
+				}
 			}
 			if(BeamParticles)
 			{
@@ -49,6 +54,14 @@ void AHitScanWeapon::FireWeapon(const FVector& HitTarget)
 				{
 					BeamParticleSystem->SetVectorParameter(FName("Target"), BeamEnd);
 				}
+			}
+			if(MuzzleFlash)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(World, MuzzleFlash, SocketTransform);
+			}
+			if(FireSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(World, FireSound, GetActorLocation());
 			}
 		}
 	}
