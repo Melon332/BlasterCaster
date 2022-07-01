@@ -6,6 +6,7 @@
 #include "Components/Button.h"
 #include "MultiplayerSessionSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Components/WidgetSwitcher.h"
 
 void UMenu::MenuSetup(int32 NumberOfMaxConnections, FString matchType, FString LobbyPath)
 {
@@ -62,6 +63,14 @@ bool UMenu::Initialize()
 	if(JoinButton)
 	{
 		JoinButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
+	}
+	if(ServerBrowserButton)
+	{
+		ServerBrowserButton->OnClicked.AddDynamic(this, &ThisClass::ActivateServerBrowser);
+	}
+	if(BackButton)
+	{
+		BackButton->OnClicked.AddDynamic(this, &ThisClass::ReturnToMainMenu);
 	}
 	return true;
 }
@@ -214,4 +223,20 @@ void UMenu::MenuTearDown()
 		}
 	}
 	
+}
+
+void UMenu::ActivateServerBrowser()
+{
+	if(WidgetController)
+	{
+		WidgetController->SetActiveWidgetIndex(1);
+	}
+}
+
+void UMenu::ReturnToMainMenu()
+{
+	if(WidgetController)
+	{
+		WidgetController->SetActiveWidgetIndex(0);
+	}
 }

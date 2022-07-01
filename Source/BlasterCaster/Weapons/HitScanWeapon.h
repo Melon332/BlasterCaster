@@ -16,17 +16,22 @@ class BLASTERCASTER_API AHitScanWeapon : public AWeapon
 public:
 	virtual void FireWeapon(const FVector& HitTarget) override;
 protected:
-private:
-
+	virtual FVector TraceEndWithScatter(const FVector& TraceStart, const FVector& HitTarget);
+	void WeaponTraceHit(const FVector& Start, const FVector& End, FHitResult& OutHit);
+	
 	UPROPERTY(EditDefaultsOnly)
-	float Damage{8};
+	UParticleSystem* BeamParticles;
 
 	UPROPERTY(EditDefaultsOnly)
 	class UParticleSystem* ImpactParticles;
 
 	UPROPERTY(EditDefaultsOnly)
-	UParticleSystem* BeamParticles;
+	USoundCue* HitSound;
 
+	UPROPERTY(EditDefaultsOnly)
+	float Damage{8};
+
+private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	UParticleSystem* MuzzleFlash;
@@ -34,8 +39,16 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* FireSound;
-
 	
-	UPROPERTY(EditDefaultsOnly)
-	USoundCue* HitSound;
+	/*
+	 * Trace end with scatter
+	 */
+	UPROPERTY(EditDefaultsOnly,Category=WeaponScatter)
+	float DistanceToSphere{800.f};
+
+	UPROPERTY(EditDefaultsOnly,Category=WeaponScatter)
+	float SphereRadius{75.f};
+
+	UPROPERTY(EditDefaultsOnly, Category=WeaponScatter)
+	bool bUseScatter{false};
 };
