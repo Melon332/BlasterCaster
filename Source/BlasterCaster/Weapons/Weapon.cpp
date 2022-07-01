@@ -205,13 +205,17 @@ void AWeapon::UpdateAmmoHUD()
 			case EWeaponType::EWT_AssaultRifle:
 				WeaponType = TEXT("Assault Rifle");
 				break;
-				case EWeaponType::EWT_Pistol:
-					WeaponType = TEXT("Pistol");
+			case EWeaponType::EWT_Pistol:
+				WeaponType = TEXT("Pistol");
+				break;
 			case EWeaponType::EWT_RocketLauncher:
 				WeaponType = TEXT("Rocket Launcher");
 				break;
 			case EWeaponType::EWT_SMG:
 				WeaponType = TEXT("SMG");
+				break;
+			case EWeaponType::EWT_AWP:
+				WeaponType = TEXT("Sniper");
 				break;
 			default: break;
 			}

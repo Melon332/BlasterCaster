@@ -83,11 +83,16 @@ void UCombatComponent::ServerSetAiming_Implementation(bool bIsAiming)
 
 void UCombatComponent::SetAiming(bool bIsAiming)
 {
+	if(!Character || !EquippedWeapon) return;
 	bAiming = bIsAiming;
 	ServerSetAiming(bIsAiming);
 	if(Character)
 	{
 		Character->GetCharacterMovement()->MaxWalkSpeed = bIsAiming ? AimWalkSpeed : BaseWalkSpeed;
+	}
+	if(Character->IsLocallyControlled() && EquippedWeapon->GetWeaponType() == EWeaponType::EWT_AWP)
+	{
+		Character->ShowSniperScopeWidget(bIsAiming);
 	}
 }
 
@@ -467,5 +472,6 @@ void UCombatComponent::InitalizeCarriedAmmo()
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Pistol, StartingPistolAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_SMG, StartingSMGAmmo);
 	CarriedAmmoMap.Emplace(EWeaponType::EWT_Shotgun, StartingShotgunAmmo);
+	CarriedAmmoMap.Emplace(EWeaponType::EWT_AWP, StartingSniperAmmo);
 }
 

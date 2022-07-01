@@ -243,4 +243,7 @@ public:
 	bool DiedFromFalling{false};
 
 	void SetDiedFromFalling(bool bDiedFromFalling) { DiedFromFalling = bDiedFromFalling; }
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);
 };
