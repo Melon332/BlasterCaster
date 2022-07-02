@@ -273,9 +273,17 @@ void ABlasterPlayerController::ActivateEliminatedText()
 	
 	if(bHUDValid)
 	{
+		FString DefeatText = FString::Printf(TEXT("Killed by: %s"), *LastLostToPlayerName);
 		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Visible);
+		BlasterHUD->CharacterOverlay->EliminatedText->SetText(FText::FromString(DefeatText));
 		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::DeactivateEliminatedText, 2.5f);
 	}
+}
+
+void ABlasterPlayerController::SetLastDefeatName(FString PlayerName)
+{
+	LastLostToPlayerName = PlayerName;
+	ActivateEliminatedText();
 }
 
 void ABlasterPlayerController::DeactivateEliminatedText()
@@ -432,6 +440,7 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABlasterPlayerController, MatchState);
+	DOREPLIFETIME(ABlasterPlayerController, LastLostToPlayerName);
 }
 
 float ABlasterPlayerController::GetServerTime()

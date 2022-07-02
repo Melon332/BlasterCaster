@@ -23,6 +23,7 @@ public:
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDWarmupCountdown(float WarmupCountdown);
 	void ActivateEliminatedText();
+	void SetLastDefeatName(FString PlayerName);
 	void DeactivateEliminatedText();
 	void ChangeColorOfText(float Minutes, float Seconds, class UTextBlock* TextBlock);
 	void OnMatchStateSet(FName State);
@@ -103,4 +104,7 @@ private:
 	FLinearColor ColorWhenBlinking;
 
 	FTimerHandle TimerHandle;
+
+	UPROPERTY(Replicated)
+	FString LastLostToPlayerName;
 };
