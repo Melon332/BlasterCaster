@@ -130,7 +130,6 @@ void UMenu::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResul
 				WidgetToSpawn->MapName->SetText(FText::FromString("de_oogabooga2"));
 				WidgetToSpawn->AmountPlayers->SetText(FText::FromString(Players));
 				WidgetToSpawn->Init();
-				WidgetToSpawn->Menu = this;
 				WidgetToSpawn->SessionAssigned = Result;
 			}
 

@@ -1,9 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "MultiplayerSessionSubsystem.h"
 #include "ServerButton.h"
-
-#include "Menu.h"
+#include "MultiplayerSessionSubsystem.h"
 #include "Components/Button.h"
 
 void UServerButton::OnPressedButton()

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "OnlineSessionSettings.h"
 #include "Blueprint/UserWidget.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "ServerButton.generated.h"
 
 /**
@@ -32,8 +31,6 @@ public:
 	class UButton* ServerButton;
 
 	FOnlineSessionSearchResult SessionAssigned;
-
-	class UMenu* Menu;
 
 	UFUNCTION()
 	void OnPressedButton();

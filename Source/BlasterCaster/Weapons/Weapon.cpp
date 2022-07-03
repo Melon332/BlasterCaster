@@ -217,6 +217,12 @@ void AWeapon::UpdateAmmoHUD()
 			case EWeaponType::EWT_AWP:
 				WeaponType = TEXT("Sniper");
 				break;
+			case EWeaponType::EWT_Shotgun:
+				WeaponType = TEXT("Shotgun");
+				break;
+			case EWeaponType::EWT_GrenadeLauncher:
+				WeaponType = TEXT("Grenade-Launcher");
+				break;
 			default: break;
 			}
 			BlasterOwnerController->SetHUDWeaponAmmo(CurrentAmmo);
