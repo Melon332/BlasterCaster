@@ -177,6 +177,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	int32 StartingSniperAmmo{0};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingGrenadeLauncher{0};
 	
 	void InitalizeCarriedAmmo();
 

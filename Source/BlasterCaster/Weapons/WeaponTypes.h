@@ -10,5 +10,6 @@ enum class EWeaponType : uint8
 	EWT_SMG = 3 UMETA(DisplayName = "SMG"),
 	EWT_Shotgun = 5 UMETA(DisplayName = "Shotgun"),
 	EWT_AWP = 6 UMETA(DisplayName = "Sniper Rifle"),
-	EWT_MAX = 7 UMETA(DisplayName = "MAX"),
+	EWT_GrenadeLauncher = 7 UMETA(DisplayName = "Grenade Launcher"),
+	EWT_MAX = 8 UMETA(DisplayName = "MAX"),
 };

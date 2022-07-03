@@ -51,6 +51,9 @@ private:
 	UPROPERTY(meta=(BindWidget))
 	UButton* BackButton;
 
+	UPROPERTY(meta=(BindWidget))
+	class UVerticalBox* ServerList;
+
 	UFUNCTION()
 	void HostButtonClicked();
 
@@ -60,6 +63,7 @@ private:
 	void MenuTearDown();
 
 	//Subsystem to handle online session functionality
+	UPROPERTY()
 	class UMultiplayerSessionSubsystem* MultiplayerSessionSubsystem;
 
 	int32 MaxPlayers{4};
@@ -70,4 +74,9 @@ private:
 	void ActivateServerBrowser();
 	UFUNCTION()
 	void ReturnToMainMenu();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> ServerButton;
+
+	bool ServerBrowserSearch;
 };
