@@ -54,18 +54,11 @@ void UBlasterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	bEliminated = BlasterCharacter->IsEliminated();
 
+	CurrCombatState = BlasterCharacter->GetCurrentCombatState();
+
 	if(bWeaponEquipped && WeaponEquipped && WeaponEquipped->GetWeaponMesh() && BlasterCharacter->GetMesh())
 	{
-		if(BlasterCharacter->GetCurrentCombatState() == ECombatState::ECS_Reloading && BlasterCharacter->GetEquippedWeapon()->GetWeaponType() != EWeaponType::EWT_RocketLauncher)
-		{
-			LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("ReloadSocket"), ERelativeTransformSpace::RTS_World);
-			FVector OutPosition;
-			FRotator OutRotation;
-			BlasterCharacter->GetMesh()->TransformToBoneSpace(FName("hand_r"),LeftHandTransform.GetLocation(),FRotator::ZeroRotator,OutPosition,OutRotation);
-			LeftHandTransform.SetLocation(OutPosition);
-			LeftHandTransform.SetRotation(FQuat(OutRotation));
-		}
-		else
+		if(CurrCombatState != ECombatState::ECS_Reloading)
 		{
 			LeftHandTransform = WeaponEquipped->GetWeaponMesh()->GetSocketTransform(FName("LeftHandSocket"), ERelativeTransformSpace::RTS_World);
 			FVector OutPosition;
