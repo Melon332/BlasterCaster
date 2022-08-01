@@ -3,6 +3,7 @@
 
 #include "Projectile.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "BlasterCaster/BlasterCaster.h"
@@ -62,6 +63,46 @@ void AProjectile::Destroyed()
 	}
 	
 	Super::Destroyed();
+}
+
+void AProjectile::SpawnTrailSystem()
+{
+	if(TrailSystem)
+	{
+		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(TrailSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
+	}
+}
+
+void AProjectile::DestroyTimerFinished()
+{
+	Destroy();
+}
+
+void AProjectile::StartDestroyTimer()
+{
+	GetWorld()->GetTimerManager().SetTimer(DestroyTimer, this, &ThisClass::DestroyTimerFinished, DestroyTime);
+}
+
+void AProjectile::ExplosionDamage()
+{
+	APawn* FiringPawn = GetInstigator();
+	if(FiringPawn && HasAuthority())
+	{
+		AController* FiringController = FiringPawn->GetController();
+		if(FiringController)
+		{
+			UGameplayStatics::ApplyRadialDamageWithFalloff(this, // World context object
+				Damage, //Base Damage
+				MinimumDamage, //The minimum damage you will take
+				GetActorLocation(), // Origin
+				InnerRadius, // The inner radius size
+				OuterRadius, // Outer Radius Size
+				1.f, //Damage fall off
+				UDamageType::StaticClass(),TArray<AActor*>(), //Ignored Actors
+				this, // Damage Causer
+				FiringController); //InstigatorController
+		}
+	}
 }
 
 void AProjectile::Tick(float DeltaTime)

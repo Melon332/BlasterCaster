@@ -3,7 +3,6 @@
 
 #include "RocketProjectile.h"
 #include "Kismet/GameplayStatics.h"
-#include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "RocketMovementComponent.h"
 #include "Components/BoxComponent.h"
@@ -12,9 +11,9 @@
 
 ARocketProjectile::ARocketProjectile()
 {
-	RocketMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rocket Mesh"));
-	RocketMesh->SetupAttachment(RootComponent);
-	RocketMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	ProjectileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Rocket Mesh"));
+	ProjectileMesh->SetupAttachment(RootComponent);
+	ProjectileMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	RocketMovementComponent = CreateDefaultSubobject<URocketMovementComponent>(TEXT("Rocket Movement"));
 	RocketMovementComponent->bRotationFollowsVelocity = true;
@@ -25,15 +24,13 @@ void ARocketProjectile::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(TrailSystem)
-	{
-		TrailSystemComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(TrailSystem, GetRootComponent(), FName(), GetActorLocation(), GetActorRotation(), EAttachLocation::KeepWorldPosition, false);
-	}
-
 	if(!HasAuthority())
 	{
 		CollisonBox->OnComponentHit.AddDynamic(this, &ThisClass::OnHit);
 	}
+
+	SpawnTrailSystem();
+	
 	if(ProjectileLoop && LoopingSoundAttenuation)
 	{
 		ProjectileLoopComponent = UGameplayStatics::SpawnSoundAttached(ProjectileLoop,
@@ -52,40 +49,13 @@ void ARocketProjectile::BeginPlay()
 	}
 }
 
-void ARocketProjectile::DestroyTimerFinished()
-{
-	Destroy();
-}
-
 
 void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
                               FVector NormalImpulse, const FHitResult& Hit)
 {
-	if(OtherActor == GetOwner())
-	{
-		UE_LOG(LogTemp,Warning,TEXT("Hitself"))
-		return;
-	}
-	APawn* FiringPawn = GetInstigator();
-	if(FiringPawn && HasAuthority())
-	{
-		AController* FiringController = FiringPawn->GetController();
-		if(FiringController)
-		{
-			UGameplayStatics::ApplyRadialDamageWithFalloff(this, // World context object
-				Damage, //Base Damage
-				MinimumDamage, //The minimum damage you will take
-				GetActorLocation(), // Origin
-				InnerRadius, // The inner radius size
-				OuterRadius, // Outer Radius Size
-				1.f, //Damage fall off
-				UDamageType::StaticClass(),TArray<AActor*>(), //Ignored Actors
-				this, // Damage Causer
-				FiringController); //InstigatorController
-		}
-	}
+	ExplosionDamage();
 
-	GetWorld()->GetTimerManager().SetTimer(DestroyTimer, this, &ThisClass::DestroyTimerFinished, DestroyTime);
+	StartDestroyTimer();
 	if(ImpactParticles)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactParticles, GetActorTransform());
@@ -94,9 +64,9 @@ void ARocketProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 	{
 		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ImpactSound, GetActorLocation());
 	}
-	if(RocketMesh)
+	if(ProjectileMesh)
 	{
-		RocketMesh->SetVisibility(false);
+		ProjectileMesh->SetVisibility(false);
 	}
 	if(CollisonBox)
 	{
