@@ -62,6 +62,7 @@ public:
 	
 	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
 	FORCEINLINE bool IsEmpty() const { return CurrentAmmo <= 0; }
+	FORCEINLINE bool IsFull() const { return CurrentAmmo >= MaxMagCapacity; }
 	FORCEINLINE int32 GetCurrentAmmo() const { return CurrentAmmo; }
 	FORCEINLINE int32 GetMaxMagCapacity() const { return MaxMagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return CurrentWeaponType; }

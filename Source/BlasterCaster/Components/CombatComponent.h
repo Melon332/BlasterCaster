@@ -64,6 +64,11 @@ public:
 
 	int32 AmountToReload();
 	void UpdateAmmoValues();
+	void UpdateShotgunAmmoValues();
+	void JumpToShotgunEnd();
+
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload(); 
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:

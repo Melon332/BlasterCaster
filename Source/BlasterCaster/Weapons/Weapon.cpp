@@ -10,6 +10,8 @@
 #include "Casing.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "BlasterCaster/PlayerController/BlasterPlayerController.h"
+#include "BlasterCaster/Character/BlasterCharacter.h"
+#include "BlasterCaster/Components/CombatComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -187,6 +189,14 @@ void AWeapon::OnRep_WeaponState()
 
 void AWeapon::OnRep_Ammo()
 {
+	BlasterOwnerCharacter = BlasterOwnerCharacter == nullptr ? Cast<ABlasterCharacter>(GetOwner()) : BlasterOwnerCharacter;
+	if(BlasterOwnerCharacter && BlasterOwnerCharacter->GetCombatComponent())
+	{
+		if(IsFull())
+		{
+			BlasterOwnerCharacter->GetCombatComponent()->JumpToShotgunEnd();
+		}
+	}
 	UpdateAmmoHUD();
 }
 
