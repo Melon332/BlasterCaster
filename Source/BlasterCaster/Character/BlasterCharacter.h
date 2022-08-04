@@ -52,6 +52,8 @@ protected:
 	void ReloadButtonPressed();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+
+	void GrenadeButtonPressed();
 	
 	void SimProxiesTurn();
 
@@ -122,6 +124,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly,Category=Combat)
 	UAnimMontage* ReloadMontage;
+
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* GrenadeMontage;
 
 	void HideCharacterIfCharacterClose();
 
@@ -209,6 +214,11 @@ private:
 
 	UPROPERTY()
 	class ABlasterPlayerState* BlasterPlayerState;
+	/*
+	 * Grenade
+	 */
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* GrenadeMesh;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -226,11 +236,13 @@ public:
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
+	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const { return GrenadeMesh; }
 	ECombatState GetCurrentCombatState() const;
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
 	void PlayReloadMontage();
+	void PlayThrowGrenadeMontage();
 	FVector GetHitTarget() const;
 
 	UFUNCTION(NetMulticast,Reliable)

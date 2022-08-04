@@ -65,6 +65,10 @@ ABlasterCharacter::ABlasterCharacter()
 	SprintSpeed = 900.f;
 
 	DissolveTimeLine = CreateDefaultSubobject<UTimelineComponent>(TEXT("Dissolve Timeline"));
+
+	GrenadeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attached Grenade"));
+	GrenadeMesh->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
+	GrenadeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -90,15 +94,14 @@ void ABlasterCharacter::UpdateHUDHealth()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-
-	/*
-	CurrentHealth = MaxHealth;
-
-	UpdateHUDHealth();
-	*/
+	
 	if(HasAuthority())
 	{
 		OnTakeAnyDamage.AddDynamic(this, &ThisClass::ReceiveDamage);
+	}
+	if(GrenadeMesh)
+	{
+		GrenadeMesh->SetVisibility(false);
 	}
 }
 
@@ -163,6 +166,8 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &ThisClass::StopSprinting);
 
 	PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &ThisClass::ReloadButtonPressed);
+
+	PlayerInputComponent->BindAction(TEXT("GrenadeThrow"), IE_Pressed, this, &ThisClass::GrenadeButtonPressed);
 }
 
 void ABlasterCharacter::PostInitializeComponents()
@@ -617,6 +622,15 @@ void ABlasterCharacter::PlayReloadMontage()
 	}
 }
 
+void ABlasterCharacter::PlayThrowGrenadeMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if(AnimInstance && GrenadeMontage)
+	{
+		AnimInstance->Montage_Play(GrenadeMontage);
+	}
+}
+
 void ABlasterCharacter::PlayHitReactMontage()
 {
 	if(!CombatComponent || !CombatComponent->EquippedWeapon) return;
@@ -636,7 +650,14 @@ void ABlasterCharacter::PlayElimMontage()
 	if(AnimInstance && ElimMontage)
 	{
 		AnimInstance->Montage_Play(ElimMontage);
-		
+	}
+}
+
+void ABlasterCharacter::GrenadeButtonPressed()
+{
+	if(CombatComponent)
+	{
+		CombatComponent->ThrowGrenade();
 	}
 }
 

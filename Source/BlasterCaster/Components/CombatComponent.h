@@ -48,11 +48,25 @@ protected:
 	void TraceUnderCrossHair(FHitResult& HitResult);
 
 	void SetHUDCrosshairs(float DeltaTime);
+	void DropEquippedWeapon();
+
+	void AttachActorToRightHand(AActor* ActorToAttach);
+	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void UpdateCarriedAmmo();
+	void PlayEquipWeaponSound();
+	void ReloadEmptyWeapon();
 
 	UFUNCTION(Server,Reliable)
 	void ServerReload();
 
 	void HandleReload();
+
+	void ThrowGrenade();
+	UFUNCTION(Server, Reliable)
+	void ServerThrowGrenade();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AProjectile> GrenadeClass;
 	
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
@@ -68,7 +82,16 @@ public:
 	void JumpToShotgunEnd();
 
 	UFUNCTION(BlueprintCallable)
-	void ShotgunShellReload(); 
+	void ShotgunShellReload();
+
+	UFUNCTION(BlueprintCallable)
+	void ThrowGrenadeFinished();
+
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
+
+	UFUNCTION(Server, Reliable)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 private:
@@ -155,6 +178,8 @@ private:
 	void StartFireTimer();
 
 	bool CanFire() const;
+
+	void ToggleGrenadeVisiblity(bool bVisible);
 
 	//Carried ammo for currently equipped weapon
 	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmo)

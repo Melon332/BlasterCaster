@@ -31,6 +31,11 @@ public:
 	void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
 	void PlayReloadWeaponAnimation();
+
+	/*
+	 * Enable Or Disable Custom Depth
+	 */
+	void ToggleCustomDepth(bool bEnable);
 protected:
 	virtual void BeginPlay() override;
 

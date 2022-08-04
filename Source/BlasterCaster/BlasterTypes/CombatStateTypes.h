@@ -7,6 +7,7 @@ enum class ECombatState : uint8
 	ECS_Reloading UMETA(DisplayName = "Reloading"),
 	ECS_Shooting UMETA(DisplayName = "Shooting"),
 	ECS_Sprinting UMETA(DisplayName = "Sprinting"),
+	ECS_ThrowingGrenade UMETA(DisplayName = "Throwing Grenade"),
 
 	ECS_MAX UMETA(DisplayName = "MAX")
 };
