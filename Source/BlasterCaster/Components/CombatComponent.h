@@ -94,6 +94,9 @@ public:
 	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
+	FORCEINLINE int32 GetGrenadesCount() const { return CurrentAmountGrenades; }
+
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 private:
 	UPROPERTY()
 	ABlasterCharacter* Character;
@@ -210,6 +213,20 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	int32 StartingGrenadeLauncher{0};
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Grenades)
+	int32 CurrentAmountGrenades{4};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxCarriedAmmo{500};
+
+	UFUNCTION()
+	void OnRep_Grenades();
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxGrenades{4};
+
+	void UpdateHUDGrenades();
 	
 	void InitalizeCarriedAmmo();
 

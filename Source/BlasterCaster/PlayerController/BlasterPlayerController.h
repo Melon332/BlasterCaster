@@ -19,6 +19,7 @@ public:
 	void SetHUDDefeat(int32 Deaths);
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
+	void SetHUDGrenades(int32 Grenades);
 	void SetHUDWeaponName(FString WeaponName, FString WeaponType);
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDWarmupCountdown(float WarmupCountdown);
@@ -98,6 +99,7 @@ private:
 
 	float HUDScore;
 	int32 HUDDefeats;
+	int32 HUDGrenades;
 	class ABlasterGameMode* BlasterGameMode;
 
 	UPROPERTY(EditDefaultsOnly)

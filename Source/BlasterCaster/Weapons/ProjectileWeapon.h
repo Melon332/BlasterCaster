@@ -17,8 +17,7 @@ public:
 	virtual void FireWeapon(const FVector& HitTarget) override;
 protected:
 	
-private:
-	
 	UPROPERTY(EditDefaultsOnly, Category="Weapon Properties")
 	TSubclassOf<class AProjectile> ProjectileClass;
+private:
 };

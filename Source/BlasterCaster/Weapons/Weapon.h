@@ -56,6 +56,8 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
+	void SpendRound();
+
 public:
 	
 	void SetWeaponState(EWeaponState State);
@@ -142,8 +144,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_Ammo();
-
-	void SpendRound();
 
 	UPROPERTY()
 	class ABlasterCharacter* BlasterOwnerCharacter;

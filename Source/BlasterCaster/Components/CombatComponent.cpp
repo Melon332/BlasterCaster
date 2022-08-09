@@ -71,6 +71,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, bAiming);
 	DOREPLIFETIME(UCombatComponent, EquippedWeapon);
 	DOREPLIFETIME(UCombatComponent, CurrentCombatState);
+	DOREPLIFETIME(UCombatComponent, CurrentAmountGrenades);
 	DOREPLIFETIME_CONDITION(UCombatComponent, CarriedAmmo, COND_OwnerOnly);
 }
 
@@ -476,6 +477,19 @@ void UCombatComponent::LaunchGrenade()
 	}
 }
 
+void UCombatComponent::PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount)
+{
+	if(CarriedAmmoMap.Contains(WeaponType))
+	{
+		CarriedAmmoMap[WeaponType] = FMath::Clamp(CarriedAmmoMap[WeaponType] + AmmoAmount, 0, MaxCarriedAmmo);
+		UpdateCarriedAmmo();
+	}
+	if(EquippedWeapon && EquippedWeapon->IsEmpty() && EquippedWeapon->GetWeaponType() == WeaponType)
+	{
+		Reload();
+	}
+}
+
 void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuantize& Target)
 {
 	if(Character && GrenadeClass && Character->GetGrenadeMesh())
@@ -494,6 +508,7 @@ void UCombatComponent::ServerLaunchGrenade_Implementation(const FVector_NetQuant
 
 void UCombatComponent::ThrowGrenade()
 {
+	if(CurrentAmountGrenades <= 0) return;
 	if(CurrentCombatState != ECombatState::ECS_Unoccupied || !EquippedWeapon) return;
 	CurrentCombatState = ECombatState::ECS_ThrowingGrenade;
 	if(Character)
@@ -506,10 +521,16 @@ void UCombatComponent::ThrowGrenade()
 	{
 		ServerThrowGrenade();
 	}
+	if(Character && Character->HasAuthority())
+	{
+		CurrentAmountGrenades = FMath::Clamp(CurrentAmountGrenades - 1, 0, MaxGrenades);
+		UpdateHUDGrenades();
+	}
 }
 
 void UCombatComponent::ServerThrowGrenade_Implementation()
 {
+	if(CurrentAmountGrenades <= 0) return;
 	CurrentCombatState = ECombatState::ECS_ThrowingGrenade;
 	if(Character)
 	{
@@ -517,6 +538,8 @@ void UCombatComponent::ServerThrowGrenade_Implementation()
 		AttachActorToLeftHand(EquippedWeapon);
 		ToggleGrenadeVisiblity(true);
 	}
+	CurrentAmountGrenades = FMath::Clamp(CurrentAmountGrenades - 1, 0, MaxGrenades);
+	UpdateHUDGrenades();
 }
 
 void UCombatComponent::ServerReload_Implementation()
@@ -625,6 +648,20 @@ void UCombatComponent::OnRep_CarriedAmmo()
 	if(bJumpToShotgunEnd)
 	{
 		JumpToShotgunEnd();
+	}
+}
+
+void UCombatComponent::OnRep_Grenades()
+{
+	UpdateHUDGrenades();
+}
+
+void UCombatComponent::UpdateHUDGrenades()
+{
+	BlasterController = BlasterController == nullptr ? Cast<ABlasterPlayerController>(Character->Controller) : BlasterController;
+	if(BlasterController)
+	{
+		BlasterController->SetHUDGrenades(CurrentAmountGrenades);
 	}
 }
 
