@@ -93,6 +93,9 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UCombatComponent* CombatComponent;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	class UBuffComponent* BuffComponent;
+
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 	
@@ -234,6 +237,7 @@ public:
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const { return GrenadeMesh; }

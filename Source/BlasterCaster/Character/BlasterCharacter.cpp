@@ -4,6 +4,7 @@
 #include "BlasterCharacter.h"
 
 #include "BlasterCaster/Components/CombatComponent.h"
+#include "BlasterCaster/Components/BuffComponent.h"
 #include "BlasterCaster/Weapons/Weapon.h"
 #include "Net/UnrealNetwork.h"
 #include "UObject/CoreNet.h"
@@ -69,6 +70,9 @@ ABlasterCharacter::ABlasterCharacter()
 	GrenadeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Attached Grenade"));
 	GrenadeMesh->SetupAttachment(GetMesh(), FName("GrenadeSocket"));
 	GrenadeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	BuffComponent = CreateDefaultSubobject<UBuffComponent>(TEXT("Buff Component"));
+	BuffComponent->SetIsReplicated(true);
 }
 
 void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -176,6 +180,10 @@ void ABlasterCharacter::PostInitializeComponents()
 	if(CombatComponent)
 	{
 		CombatComponent->Character = this;
+	}
+	if(BuffComponent)
+	{
+		BuffComponent->Character = this;
 	}
 }
 
