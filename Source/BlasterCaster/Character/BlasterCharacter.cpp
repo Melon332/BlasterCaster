@@ -535,9 +535,12 @@ void ABlasterCharacter::StartDissolve()
 	}
 }
 
-void ABlasterCharacter::OnRep_HealthUpdated()
+void ABlasterCharacter::OnRep_HealthUpdated(float LastHealth)
 {
-	PlayHitReactMontage();
+	if(CurrentHealth <= LastHealth)
+	{
+		PlayHitReactMontage();
+	}
 	UpdateHUDHealth();
 }
 

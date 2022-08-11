@@ -180,7 +180,7 @@ private:
 
 	
 	UFUNCTION()
-	void OnRep_HealthUpdated();
+	void OnRep_HealthUpdated(float LastHealth);
 
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
@@ -235,6 +235,7 @@ public:
 	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	FORCEINLINE void SetCurrentHealth(float Amount) { CurrentHealth = Amount; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }

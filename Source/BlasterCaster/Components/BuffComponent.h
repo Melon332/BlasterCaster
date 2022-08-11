@@ -19,11 +19,17 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void HealRampUp(float DeltaTime);
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	void Heal(float HealAmount, float HealingTime);
+
 private:
 	UPROPERTY()
-	class ABlasterCharacter* Character;
-		
+	ABlasterCharacter* Character;
+
+	bool bHealing{false};
+	float HealingRate{0.f};
+	float AmountToHeal{0.f};
 };

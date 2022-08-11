@@ -36,7 +36,7 @@ void AHealthPickup::OnSphereOverlap(UPrimitiveComponent* PrimitiveComponent, AAc
 		
 		if(UBuffComponent* BuffComponent = BlasterCharacter->GetBuffComponent())
 		{
-			
+			BuffComponent->Heal(HealAmount, HealingTime);
 		}
 	}
 	Destroy();
