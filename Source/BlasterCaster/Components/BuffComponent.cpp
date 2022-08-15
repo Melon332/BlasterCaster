@@ -77,6 +77,37 @@ void UBuffComponent::ResetSpeed()
 	MulticastSpeedBuff(InitialBaseSpeed, InitialCrouchSpeed);
 }
 
+void UBuffComponent::ResetJump()
+{
+	if(!Character) return;
+	if(UCharacterMovementComponent* CharacterMovementComponent = Character->GetCharacterMovement())
+	{
+		CharacterMovementComponent->JumpZVelocity = InitialBaseJump;
+	}
+	MulticastJumpBuff(InitialBaseJump);
+}
+
+void UBuffComponent::BuffJump(float BuffJumpVelocity, float BuffTime)
+{
+	if(!Character) return;
+
+	if(UCharacterMovementComponent* CharacterMovementComponent = Character->GetCharacterMovement())
+	{
+		CharacterMovementComponent->JumpZVelocity = BuffJumpVelocity;
+	}
+	Character->GetWorldTimerManager().SetTimer(SpeedBuffHandle, this, &ThisClass::ResetJump, BuffTime);
+	MulticastJumpBuff(BuffJumpVelocity);
+}
+
+void UBuffComponent::MulticastJumpBuff_Implementation(float JumpBuff)
+{
+	if(!Character) return;
+	if(UCharacterMovementComponent* CharacterMovementComponent = Character->GetCharacterMovement())
+	{
+		CharacterMovementComponent->JumpZVelocity = JumpBuff;
+	}
+}
+
 void UBuffComponent::MulticastSpeedBuff_Implementation(float SpeedBuff, float CrouchSpeedBuff)
 {
 	if(!Character) return;

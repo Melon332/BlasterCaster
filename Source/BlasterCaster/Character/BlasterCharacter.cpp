@@ -166,8 +166,10 @@ void ABlasterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(TEXT("Shoot"), IE_Pressed, this, &ThisClass::FireButtonPressed);
 	PlayerInputComponent->BindAction(TEXT("Shoot"), IE_Released, this, &ThisClass::FireButtonReleased);
 
+	/*
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Pressed, this, &ThisClass::StartSprinting);
 	PlayerInputComponent->BindAction(TEXT("Sprint"), IE_Released, this, &ThisClass::StopSprinting);
+	*/
 
 	PlayerInputComponent->BindAction(TEXT("Reload"), IE_Pressed, this, &ThisClass::ReloadButtonPressed);
 
@@ -185,6 +187,7 @@ void ABlasterCharacter::PostInitializeComponents()
 	{
 		BuffComponent->Character = this;
 		BuffComponent->SetInitialSpeeds(GetCharacterMovement()->MaxWalkSpeed, GetCharacterMovement()->MaxWalkSpeedCrouched);
+		BuffComponent->SetInitialJumpSpeed(GetCharacterMovement()->JumpZVelocity);
 	}
 }
 

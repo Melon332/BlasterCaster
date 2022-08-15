@@ -7,7 +7,7 @@
 #include "BuffComponent.generated.h"
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BLASTERCASTER_API UBuffComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -25,6 +25,7 @@ public:
 
 	void Heal(float HealAmount, float HealingTime);
 	void SpeedBuff(float SpeedBuff, float CrouchSpeedBuff, float SpeedBuffTime);
+	void BuffJump(float BuffJumpVelocity, float BuffTime);
 private:
 	UPROPERTY()
 	ABlasterCharacter* Character;
@@ -43,6 +44,15 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastSpeedBuff(float SpeedBuff, float CrouchSpeedBuff);
+	
+	//JUMP VARIABLES
+	float InitialBaseJump;
+	FTimerHandle JumpBuffTimer;
+	void ResetJump();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastJumpBuff(float JumpBuff);
 public:
 	FORCEINLINE void SetInitialSpeeds(float BaseSpeed, float CrouchSpeed) { InitialBaseSpeed = BaseSpeed; InitialCrouchSpeed = CrouchSpeed; }
+	FORCEINLINE void SetInitialJumpSpeed(float JumpSpeed) { InitialBaseJump = JumpSpeed; }
 };
