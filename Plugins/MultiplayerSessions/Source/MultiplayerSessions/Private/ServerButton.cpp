@@ -16,10 +16,11 @@ void UServerButton::OnPressedButton()
 	}
 }
 
-void UServerButton::Init()
+void UServerButton::Init(FOnlineSessionSearchResult SessionFound)
 {
 	if(ServerButton)
 	{
+		SessionAssigned = SessionFound;
 		ServerButton->OnClicked.AddDynamic(this, &ThisClass::OnPressedButton);
 		if(GEngine)
 		{

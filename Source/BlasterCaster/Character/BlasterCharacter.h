@@ -24,6 +24,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void UpdateHUDHealth();
+	void UpdateHUDShield();
 
 	virtual void PostInitializeComponents() override;
 
@@ -155,6 +156,11 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_HealthUpdated, VisibleAnywhere)
 	float CurrentHealth;
 
+	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	float MaxShield{100.f};
+	UPROPERTY(ReplicatedUsing=OnRep_ShieldUpdated, EditDefaultsOnly)
+	float CurrentShield{100.f};
+
 	/*
 	 *Dissolve Effect
 	 */
@@ -181,6 +187,9 @@ private:
 	
 	UFUNCTION()
 	void OnRep_HealthUpdated(float LastHealth);
+
+	UFUNCTION()
+	void OnRep_ShieldUpdated(float LastShield);
 
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
@@ -235,8 +244,11 @@ public:
 	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	FORCEINLINE float GetCurrentShield() const { return CurrentShield; }
 	FORCEINLINE void SetCurrentHealth(float Amount) { CurrentHealth = Amount; }
+	FORCEINLINE void SetCurrentShield(float Amount) { CurrentShield = Amount; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }

@@ -114,10 +114,6 @@ void UMenu::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResul
 
 	if(ServerBrowserSearch)
 	{
-		if(GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, TEXT("Finished looking for games!"));
-		}
 		for(auto Result : SessionResults)
 		{
 			UServerButton* WidgetToSpawn = CreateWidget<UServerButton>(this, ServerButton);
@@ -129,8 +125,7 @@ void UMenu::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResul
 				WidgetToSpawn->LeaderName->SetText(FText::FromString(Result.Session.OwningUserName));
 				WidgetToSpawn->MapName->SetText(FText::FromString("de_oogabooga2"));
 				WidgetToSpawn->AmountPlayers->SetText(FText::FromString(Players));
-				WidgetToSpawn->Init();
-				WidgetToSpawn->SessionAssigned = Result;
+				WidgetToSpawn->Init(Result);
 			}
 
 			if(ServerList)

@@ -81,6 +81,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	
 	DOREPLIFETIME_CONDITION(ABlasterCharacter, OverlappingWeapon, COND_OwnerOnly);
 	DOREPLIFETIME(ABlasterCharacter, CurrentHealth);
+	DOREPLIFETIME(ABlasterCharacter, CurrentShield);
 	DOREPLIFETIME(ABlasterCharacter, bIsRunning);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
 }
@@ -94,10 +95,22 @@ void ABlasterCharacter::UpdateHUDHealth()
 	}
 }
 
+void ABlasterCharacter::UpdateHUDShield()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if(BlasterPlayerController)
+	{
+		BlasterPlayerController->SetHUDShield(CurrentShield, MaxShield);
+	}
+}
+
 // Called when the game starts or when spawned
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	UpdateHUDHealth();
+	UpdateHUDShield();
 	
 	if(HasAuthority())
 	{
@@ -402,9 +415,28 @@ void ABlasterCharacter::ReceiveDamage(AActor* DamagedActor, float Damage, const 
 	AController* InstigatorController, AActor* DamageCauser)
 {
 	if(bEliminated) return;
-	CurrentHealth = FMath::Clamp(CurrentHealth - Damage, 0.f, MaxHealth);
+	float DamageToHealth = Damage;
+
+	if(CurrentShield > 0)
+	{
+		if(CurrentShield >= Damage)
+		{
+			CurrentShield = FMath::Clamp(CurrentShield - Damage, 0.f, MaxShield);
+			DamageToHealth = 0;
+		}
+		else
+		{
+			DamageToHealth = FMath::Clamp(DamageToHealth - CurrentShield, 0.f, Damage);
+			CurrentShield = 0;
+		}
+	}
+	
+	CurrentHealth = FMath::Clamp(CurrentHealth - DamageToHealth, 0.f, MaxHealth);
+
+	
 	PlayHitReactMontage();
 	UpdateHUDHealth();
+	UpdateHUDShield();
 
 	if(CurrentHealth <= 0.f)
 	{
@@ -541,11 +573,20 @@ void ABlasterCharacter::StartDissolve()
 
 void ABlasterCharacter::OnRep_HealthUpdated(float LastHealth)
 {
-	if(CurrentHealth <= LastHealth)
+	if(CurrentHealth < LastHealth)
 	{
 		PlayHitReactMontage();
 	}
 	UpdateHUDHealth();
+}
+
+void ABlasterCharacter::OnRep_ShieldUpdated(float LastShield)
+{
+	if(CurrentShield < LastShield)
+	{
+		PlayHitReactMontage();
+	}
+	UpdateHUDShield();
 }
 
 void ABlasterCharacter::SetOverlappingWeapon(AWeapon* OverlappedWeapon)

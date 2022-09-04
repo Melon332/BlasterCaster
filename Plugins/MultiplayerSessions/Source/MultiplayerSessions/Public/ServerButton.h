@@ -35,5 +35,5 @@ public:
 	UFUNCTION()
 	void OnPressedButton();
 	
-	void Init();
+	void Init(FOnlineSessionSearchResult SessionFound);
 };

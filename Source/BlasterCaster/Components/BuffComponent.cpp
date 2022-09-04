@@ -25,6 +25,7 @@ void UBuffComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	HealRampUp(DeltaTime);
+	ShieldReplenishRampUp(DeltaTime);
 }
 
 void UBuffComponent::Heal(float HealAmount, float HealingTime)
@@ -33,6 +34,16 @@ void UBuffComponent::Heal(float HealAmount, float HealingTime)
 
 	HealingRate = HealAmount / HealingTime;
 	AmountToHeal += HealAmount;
+}
+
+void UBuffComponent::ReplenishShield(float ShieldAmount, float ShieldTime)
+{
+	bReplenishShield = true;
+
+	ReplenishShieldRate = ShieldAmount / ShieldTime;
+	ShieldReplenishAmount += ShieldAmount;
+
+	UE_LOG(LogTemp, Warning, TEXT("Replenshing shield... %f"), ReplenishShieldRate);
 }
 
 void UBuffComponent::HealRampUp(float DeltaTime)
@@ -50,6 +61,25 @@ void UBuffComponent::HealRampUp(float DeltaTime)
 	{
 		bHealing = false;
 		AmountToHeal = 0;
+	}
+}
+
+void UBuffComponent::ShieldReplenishRampUp(float DeltaTime)
+{
+	if(!bReplenishShield || Character == nullptr || Character->IsEliminated()) return;
+
+	const float ReplenishShieldThisFrame = ReplenishShieldRate * DeltaTime;
+
+	Character->SetCurrentShield(FMath::Clamp(Character->GetCurrentShield() + ReplenishShieldThisFrame, 0, Character->GetMaxShield()));
+	Character->UpdateHUDShield();
+	ShieldReplenishAmount -= ReplenishShieldThisFrame;
+
+	UE_LOG(LogTemp, Warning, TEXT("I am being called! %f"), ShieldReplenishAmount)
+	
+	if(ShieldReplenishAmount <= 0 || Character->GetCurrentShield() >= Character->GetMaxShield())
+	{
+		bReplenishShield = false;
+		ShieldReplenishAmount = 0;
 	}
 }
 

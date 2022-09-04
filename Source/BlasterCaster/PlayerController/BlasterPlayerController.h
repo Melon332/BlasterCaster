@@ -15,6 +15,7 @@ class BLASTERCASTER_API ABlasterPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDShield(float Shield, float MaxShield);
 	void SetHUDScore(float Score);
 	void SetHUDDefeat(int32 Deaths);
 	void SetHUDWeaponAmmo(int32 Ammo);
@@ -92,14 +93,23 @@ private:
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
 
-	bool bInitializeCharacterOverlay{false};
+	
 
 	float HUDHealth;
 	float HUDMaxHealth;
+	bool bInitHealth{false};
+	
+	float HUDShield;
+	float HUDMaxShield;
+	bool bInitShield{false};
 
 	float HUDScore;
+	bool bInitScore{false};
 	int32 HUDDefeats;
+	bool bInitDefeats{false};
 	int32 HUDGrenades;
+	bool bInitGrenades{false};
+	UPROPERTY()
 	class ABlasterGameMode* BlasterGameMode;
 
 	UPROPERTY(EditDefaultsOnly)

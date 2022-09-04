@@ -20,10 +20,12 @@ protected:
 	virtual void BeginPlay() override;
 
 	void HealRampUp(float DeltaTime);
+	void ShieldReplenishRampUp(float DeltaTime);
 public:	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void Heal(float HealAmount, float HealingTime);
+	void ReplenishShield(float ShieldAmount, float ShieldTime);
 	void SpeedBuff(float SpeedBuff, float CrouchSpeedBuff, float SpeedBuffTime);
 	void BuffJump(float BuffJumpVelocity, float BuffTime);
 private:
@@ -34,6 +36,11 @@ private:
 	bool bHealing{false};
 	float HealingRate{0.f};
 	float AmountToHeal{0.f};
+
+	//SHIELD VARIABLES
+	bool bReplenishShield{false};
+	float ReplenishShieldRate{0.f};
+	float ShieldReplenishAmount{0.f};
 
 	//SPEED VARIABLES
 	FTimerHandle SpeedBuffHandle;
