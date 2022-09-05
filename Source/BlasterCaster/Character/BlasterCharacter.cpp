@@ -108,6 +108,8 @@ void ABlasterCharacter::UpdateHUDShield()
 void ABlasterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	SpawnDefaultWeapon();
+	UpdateHUDAmmo();
 	
 	UpdateHUDHealth();
 	UpdateHUDShield();
@@ -243,6 +245,21 @@ void ABlasterCharacter::FellOutOfWorld(const UDamageType& dmgType)
 	}
 }
 
+void ABlasterCharacter::SpawnDefaultWeapon()
+{
+	ABlasterGameMode* BlasterGameMode = Cast<ABlasterGameMode>(UGameplayStatics::GetGameMode(this));
+	UWorld* World = GetWorld();
+	if(BlasterGameMode && World && !bEliminated && DefaultWeaponClass)
+	{
+		AWeapon* StartingWeapon = World->SpawnActor<AWeapon>(DefaultWeaponClass);
+		StartingWeapon->bDestroyWeapon = true;
+		if(CombatComponent)
+		{
+			CombatComponent->EquipWeapon(StartingWeapon);
+		}
+	}
+}
+
 void ABlasterCharacter::MoveForward(float value)
 {
 	if(bDisableGameplay) return;
@@ -346,14 +363,7 @@ void ABlasterCharacter::EquipButtonPressed()
 	if(bDisableGameplay) return;
 	if(CombatComponent)
 	{
-		if(HasAuthority())
-		{
-			CombatComponent->EquipWeapon(OverlappingWeapon);
-		}
-		else
-		{
-			ServerEquipButtonPressed();
-		}
+		ServerEquipButtonPressed();
 	}
 }
 
@@ -527,7 +537,14 @@ void ABlasterCharacter::ServerEquipButtonPressed_Implementation()
 {
 	if(CombatComponent)
 	{
-		CombatComponent->EquipWeapon(OverlappingWeapon);
+		if(OverlappingWeapon)
+		{
+			CombatComponent->EquipWeapon(OverlappingWeapon);
+		}
+		else if(CombatComponent->CanSwapWeapons())
+		{
+			CombatComponent->SwapWeapons();
+		}
 	}
 }
 
@@ -710,6 +727,16 @@ void ABlasterCharacter::PlayElimMontage()
 	}
 }
 
+void ABlasterCharacter::UpdateHUDAmmo()
+{
+	BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(Controller) : BlasterPlayerController;
+	if(BlasterPlayerController && CombatComponent && CombatComponent->EquippedWeapon)
+	{
+		BlasterPlayerController->SetHUDCarriedAmmo(CombatComponent->CarriedAmmo);
+		BlasterPlayerController->SetHUDWeaponAmmo(CombatComponent->EquippedWeapon->GetCurrentAmmo());
+	}
+}
+
 void ABlasterCharacter::GrenadeButtonPressed()
 {
 	if(CombatComponent)
@@ -773,15 +800,42 @@ void ABlasterCharacter::ServerSprinting_Implementation(bool bRunning)
 
 void ABlasterCharacter::Eliminated()
 {
-	if(CombatComponent && CombatComponent->EquippedWeapon)
-	{
-		CombatComponent->EquippedWeapon->Dropped();
-		CombatComponent->bFireButtonPressed = false;
-	}
+	DropOrDestroyWeapons();
 	MulticastEliminated();
 
 	GetWorld()->GetTimerManager().SetTimer(EliminatedTimer, this, &ThisClass::EliminatedTimerFinished, EliminatedDelay);
 }
+void ABlasterCharacter::DropOrDestroyWeapon(AWeapon* Weapon)
+{
+	if(Weapon)
+	{
+		if(Weapon->bDestroyWeapon)
+		{
+			Weapon->Destroy();
+		}
+		else
+		{
+			Weapon->Dropped();
+		}
+	}
+}
+
+void ABlasterCharacter::DropOrDestroyWeapons()
+{
+	if(CombatComponent)
+	{
+		if(CombatComponent->EquippedWeapon)
+		{
+			DropOrDestroyWeapon(CombatComponent->EquippedWeapon);
+			CombatComponent->bFireButtonPressed = false;
+		}
+		if(CombatComponent->SecondaryWeapon)
+		{
+			DropOrDestroyWeapon(CombatComponent->SecondaryWeapon);
+		}
+	}
+}
+
 
 void ABlasterCharacter::EliminatedTimerFinished()
 {

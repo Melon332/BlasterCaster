@@ -37,6 +37,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
 	void Fire();
 
 	UFUNCTION(Server, Reliable)
@@ -52,8 +54,9 @@ protected:
 
 	void AttachActorToRightHand(AActor* ActorToAttach);
 	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void AttachActorToBackpack(AActor* ActorToAttach);
 	void UpdateCarriedAmmo();
-	void PlayEquipWeaponSound();
+	void PlayEquipWeaponSound(AWeapon* EquippingWeapon);
 	void ReloadEmptyWeapon();
 
 	UFUNCTION(Server,Reliable)
@@ -67,9 +70,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<class AProjectile> GrenadeClass;
-	
+
+	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
+	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void SwapWeapons();
 
 	void Reload();
 
@@ -95,6 +101,7 @@ public:
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
 	FORCEINLINE int32 GetGrenadesCount() const { return CurrentAmountGrenades; }
+	bool CanSwapWeapons();
 
 	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 private:
@@ -109,6 +116,9 @@ private:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing=OnRep_SecondaryWeapon)
+	AWeapon* SecondaryWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;

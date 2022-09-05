@@ -34,6 +34,8 @@ public:
 	
 	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
 
+	void SpawnDefaultWeapon();
+
 	UPROPERTY(Replicated)
 	bool bDisableGameplay{false};
 protected:
@@ -53,6 +55,9 @@ protected:
 	void ReloadButtonPressed();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+	void UpdateHUDAmmo();
+	void DropOrDestroyWeapon(class AWeapon* Weapon);
+	void DropOrDestroyWeapons();
 
 	void GrenadeButtonPressed();
 	
@@ -231,6 +236,10 @@ private:
 	 */
 	UPROPERTY(EditDefaultsOnly)
 	UStaticMeshComponent* GrenadeMesh;
+
+	//Default Weapon
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();

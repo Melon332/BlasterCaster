@@ -103,6 +103,12 @@ private:
 	float HUDMaxShield;
 	bool bInitShield{false};
 
+	float HUDCarriedAmmo;
+	bool bInitCarriedAmmo{false};
+
+	float HUDWeaponAmmo;
+	bool bInitWeaponAmmo{false};
+
 	float HUDScore;
 	bool bInitScore{false};
 	int32 HUDDefeats;

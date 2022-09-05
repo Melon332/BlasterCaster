@@ -42,8 +42,6 @@ void UBuffComponent::ReplenishShield(float ShieldAmount, float ShieldTime)
 
 	ReplenishShieldRate = ShieldAmount / ShieldTime;
 	ShieldReplenishAmount += ShieldAmount;
-
-	UE_LOG(LogTemp, Warning, TEXT("Replenshing shield... %f"), ReplenishShieldRate);
 }
 
 void UBuffComponent::HealRampUp(float DeltaTime)
@@ -73,8 +71,6 @@ void UBuffComponent::ShieldReplenishRampUp(float DeltaTime)
 	Character->SetCurrentShield(FMath::Clamp(Character->GetCurrentShield() + ReplenishShieldThisFrame, 0, Character->GetMaxShield()));
 	Character->UpdateHUDShield();
 	ShieldReplenishAmount -= ReplenishShieldThisFrame;
-
-	UE_LOG(LogTemp, Warning, TEXT("I am being called! %f"), ShieldReplenishAmount)
 	
 	if(ShieldReplenishAmount <= 0 || Character->GetCurrentShield() >= Character->GetMaxShield())
 	{
