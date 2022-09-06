@@ -24,6 +24,7 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	void UpdateHUDHealth();
+	void UpdateHUDShield();
 
 	virtual void PostInitializeComponents() override;
 
@@ -32,6 +33,8 @@ public:
 	virtual void Destroyed() override;
 	
 	virtual void FellOutOfWorld(const UDamageType& dmgType) override;
+
+	void SpawnDefaultWeapon();
 
 	UPROPERTY(Replicated)
 	bool bDisableGameplay{false};
@@ -52,6 +55,11 @@ protected:
 	void ReloadButtonPressed();
 	void PlayHitReactMontage();
 	void PlayElimMontage();
+	void UpdateHUDAmmo();
+	void DropOrDestroyWeapon(class AWeapon* Weapon);
+	void DropOrDestroyWeapons();
+
+	void GrenadeButtonPressed();
 	
 	void SimProxiesTurn();
 
@@ -91,6 +99,9 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UCombatComponent* CombatComponent;
 
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	class UBuffComponent* BuffComponent;
+
 	UFUNCTION(Server, Reliable)
 	void ServerEquipButtonPressed();
 	
@@ -123,6 +134,9 @@ private:
 	UPROPERTY(EditDefaultsOnly,Category=Combat)
 	UAnimMontage* ReloadMontage;
 
+	UPROPERTY(EditDefaultsOnly,Category=Combat)
+	UAnimMontage* GrenadeMontage;
+
 	void HideCharacterIfCharacterClose();
 
 	UPROPERTY(EditDefaultsOnly)
@@ -146,6 +160,11 @@ private:
 	float MaxHealth{100.f};
 	UPROPERTY(ReplicatedUsing=OnRep_HealthUpdated, VisibleAnywhere)
 	float CurrentHealth;
+
+	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	float MaxShield{100.f};
+	UPROPERTY(ReplicatedUsing=OnRep_ShieldUpdated, EditDefaultsOnly)
+	float CurrentShield{100.f};
 
 	/*
 	 *Dissolve Effect
@@ -172,7 +191,10 @@ private:
 
 	
 	UFUNCTION()
-	void OnRep_HealthUpdated();
+	void OnRep_HealthUpdated(float LastHealth);
+
+	UFUNCTION()
+	void OnRep_ShieldUpdated(float LastShield);
 
 	UPROPERTY()
 	class ABlasterPlayerController* BlasterPlayerController;
@@ -209,6 +231,15 @@ private:
 
 	UPROPERTY()
 	class ABlasterPlayerState* BlasterPlayerState;
+	/*
+	 * Grenade
+	 */
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* GrenadeMesh;
+
+	//Default Weapon
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AWeapon> DefaultWeaponClass;
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -222,14 +253,22 @@ public:
 	FORCEINLINE bool IsEliminated() const { return bEliminated; }
 	FORCEINLINE bool GetIsRunning() const { return bIsRunning; }
 	FORCEINLINE float GetCurrentHealth() const { return CurrentHealth; }
+	FORCEINLINE float GetCurrentShield() const { return CurrentShield; }
+	FORCEINLINE void SetCurrentHealth(float Amount) { CurrentHealth = Amount; }
+	FORCEINLINE void SetCurrentShield(float Amount) { CurrentShield = Amount; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
+	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
+	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
+	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const { return GrenadeMesh; }
 	ECombatState GetCurrentCombatState() const;
 	AWeapon* GetEquippedWeapon();
 
 	void PlayFireMontage(bool bAiming);
 	void PlayReloadMontage();
+	void PlayThrowGrenadeMontage();
 	FVector GetHitTarget() const;
 
 	UFUNCTION(NetMulticast,Reliable)
@@ -243,4 +282,8 @@ public:
 	bool DiedFromFalling{false};
 
 	void SetDiedFromFalling(bool bDiedFromFalling) { DiedFromFalling = bDiedFromFalling; }
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowSniperScopeWidget(bool bShowScope);
 };
+

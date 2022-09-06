@@ -94,6 +94,7 @@ void UMultiplayerSessionSubsystem::JoinSession(const FOnlineSessionSearchResult&
 	{
 		SessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(JoinSessionCompleteDelegateHandle);
 		MultiplayerOnJoinSessionComplete.Broadcast(EOnJoinSessionCompleteResult::UnknownError);
+		
 	}
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, TEXT("Found Session and sent request to join!"));
 }

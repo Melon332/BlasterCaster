@@ -90,7 +90,15 @@ void ABlasterGameMode::PlayerEliminated(ABlasterCharacter* EliminatedPlayer,
 	if(VictimPlayerState)
 	{
 		VictimPlayerState->AddToDefeats(1);
-		EliminatedPlayerController->ActivateEliminatedText();
+		if(EliminatedPlayerController->PlayerState->GetPlayerName() == AttackerController->PlayerState->GetPlayerName())
+		{
+			EliminatedPlayerController->SetLastDefeatName(FString("Yourself"));
+			
+		}
+		else
+		{
+			EliminatedPlayerController->SetLastDefeatName(AttackerController->PlayerState->GetPlayerName());
+		}
 	}
 	
 	if(EliminatedPlayer)

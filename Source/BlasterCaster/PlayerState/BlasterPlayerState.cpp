@@ -62,7 +62,19 @@ void ABlasterPlayerState::AddToDefeats(int32 DefeatAmount)
 {
 	Defeats += DefeatAmount;
 
-	UpdateDefeatHUD();
+	BlasterCharacter = BlasterCharacter == nullptr ? Cast<ABlasterCharacter>(GetPawn()) : BlasterCharacter;
+	if(BlasterCharacter)
+	{
+		BlasterPlayerController = BlasterPlayerController == nullptr ? Cast<ABlasterPlayerController>(BlasterCharacter->Controller) : BlasterPlayerController;
+		if(BlasterPlayerController)
+		{
+			BlasterPlayerController->SetHUDDefeat(Defeats);
+			if(Defeats != 0)
+			{
+				//BlasterPlayerController->ActivateEliminatedText();
+			}
+		}
+	}
 }
 
 void ABlasterPlayerState::OnRep_OnDefeats()

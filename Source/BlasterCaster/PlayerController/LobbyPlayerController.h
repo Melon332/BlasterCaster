@@ -49,4 +49,12 @@ private:
 	float LevelStartingTimer{0.f};
 
 	float CurrentTimer{0.f};
+
+	UPROPERTY(EditDefaultsOnly)
+	float TimerBlinking{5.f};
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor ColorWhenBlinking;
+
+	void ChangeColorOfText(float Minutes, float Seconds, class UTextBlock* TextBlock);
 };

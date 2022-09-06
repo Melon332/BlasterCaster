@@ -6,6 +6,10 @@
 #include "Components/Button.h"
 #include "MultiplayerSessionSubsystem.h"
 #include "OnlineSessionSettings.h"
+#include "Components/VerticalBox.h"
+#include "Components/WidgetSwitcher.h"
+#include "ServerButton.h"
+#include "Components/TextBlock.h"
 
 void UMenu::MenuSetup(int32 NumberOfMaxConnections, FString matchType, FString LobbyPath)
 {
@@ -63,6 +67,14 @@ bool UMenu::Initialize()
 	{
 		JoinButton->OnClicked.AddDynamic(this, &ThisClass::JoinButtonClicked);
 	}
+	if(ServerBrowserButton)
+	{
+		ServerBrowserButton->OnClicked.AddDynamic(this, &ThisClass::ActivateServerBrowser);
+	}
+	if(BackButton)
+	{
+		BackButton->OnClicked.AddDynamic(this, &ThisClass::ReturnToMainMenu);
+	}
 	return true;
 }
 
@@ -100,6 +112,31 @@ void UMenu::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResul
 {
 	if(!MultiplayerSessionSubsystem) return;
 
+	if(ServerBrowserSearch)
+	{
+		for(auto Result : SessionResults)
+		{
+			UServerButton* WidgetToSpawn = CreateWidget<UServerButton>(this, ServerButton);
+			if(WidgetToSpawn)
+			{
+				FString Ping = FString::Printf(TEXT("%d ms"), Result.PingInMs);
+				FString Players = FString::Printf(TEXT("%d/%d"), Result.Session.SessionSettings.NumPublicConnections - Result.Session.NumOpenPublicConnections, Result.Session.SessionSettings.NumPublicConnections);
+				WidgetToSpawn->Ping->SetText(FText::FromString(Ping));
+				WidgetToSpawn->LeaderName->SetText(FText::FromString(Result.Session.OwningUserName));
+				WidgetToSpawn->MapName->SetText(FText::FromString("de_oogabooga2"));
+				WidgetToSpawn->AmountPlayers->SetText(FText::FromString(Players));
+				WidgetToSpawn->Init(Result);
+			}
+
+			if(ServerList)
+			{
+				ServerList->AddChildToVerticalBox(WidgetToSpawn);
+			}
+		}
+		ServerBrowserSearch = false;
+		return;
+	}
+
 	//GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, TEXT("Finding..."));
 	
 	for(auto result : SessionResults)
@@ -122,21 +159,14 @@ void UMenu::OnFindSession(const TArray<FOnlineSessionSearchResult>& SessionResul
 
 void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, TEXT("OnJoinSession Called"));
 	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
 	if (Subsystem)
 	{
 		IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
-		if (SessionInterface.IsValid())
+		if (SessionInterface.IsValid() && Result == EOnJoinSessionCompleteResult::Success)
 		{
 			FString Address;
 			SessionInterface->GetResolvedConnectString(NAME_GameSession, Address);
-
-			if(GEngine)
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Blue, TEXT("Joining..."));
-			}
-			
 			APlayerController* PlayerController = GetGameInstance()->GetFirstLocalPlayerController();
 			if (PlayerController)
 			{
@@ -148,6 +178,18 @@ void UMenu::OnJoinSession(EOnJoinSessionCompleteResult::Type Result)
 	if(Result != EOnJoinSessionCompleteResult::Success)
 	{
 		JoinButton->SetIsEnabled(true);
+		switch (Result)
+		{
+		case EOnJoinSessionCompleteResult::UnknownError:
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, FString::Printf(TEXT("Unknown error occured!")));
+			break;
+		case EOnJoinSessionCompleteResult::CouldNotRetrieveAddress:
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, FString::Printf(TEXT("Could not get the address!")));
+			break;
+		case EOnJoinSessionCompleteResult::SessionDoesNotExist:
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, FString::Printf(TEXT("The session did not exist!!!")));
+			break;
+		}
 	}
 }
 
@@ -190,6 +232,10 @@ void UMenu::HostButtonClicked()
 void UMenu::JoinButtonClicked()
 {
 	JoinButton->SetIsEnabled(false);
+	if(ServerBrowserButton)
+	{
+		ServerBrowserButton->SetIsEnabled(false);
+	}
 	if(GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Blue, FString::Printf(TEXT("Join Button Clicked")));
@@ -202,6 +248,10 @@ void UMenu::JoinButtonClicked()
 
 void UMenu::MenuTearDown()
 {
+	if(WidgetController->ActiveWidgetIndex == 1)
+	{
+		WidgetController->SetActiveWidgetIndex(0);
+	}
 	RemoveFromParent();
 	if(UWorld* World = GetWorld())
 	{
@@ -214,4 +264,26 @@ void UMenu::MenuTearDown()
 		}
 	}
 	
+}
+
+void UMenu::ActivateServerBrowser()
+{
+	if(WidgetController)
+	{
+		WidgetController->SetActiveWidgetIndex(1);
+		ServerBrowserSearch = true;
+		MultiplayerSessionSubsystem->FindSessions(10000);
+	}
+}
+
+void UMenu::ReturnToMainMenu()
+{
+	if(WidgetController)
+	{
+		WidgetController->SetActiveWidgetIndex(0);
+	}
+	if(ServerList)
+	{
+		ServerList->ClearChildren();
+	}
 }

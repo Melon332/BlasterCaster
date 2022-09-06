@@ -13,6 +13,7 @@ enum class EWeaponState : uint8
 	EWS_Initial UMETA(DisplayName = "Initial State"),
 	EWS_Equipped UMETA(DisplayName = "Equipped"),
 	EWS_Dropped UMETA(DisplayName = "Dropped"),
+	EWS_EquippedSecondary UMETA(DisplayName = "Equipped Secondary"),
 	
 	EWS_MAX UMETA(DisplayName = "Default Max")
 };
@@ -31,8 +32,20 @@ public:
 	void Dropped();
 	void AddAmmo(int32 AmmoToAdd);
 	void PlayReloadWeaponAnimation();
+
+	/*
+	 * Enable Or Disable Custom Depth
+	 */
+	void ToggleCustomDepth(bool bEnable);
+
+	bool bDestroyWeapon{false};
 protected:
 	virtual void BeginPlay() override;
+
+	virtual void OnWeaponStateSet();
+	virtual void OnEquipped();
+	virtual void OnDropped();
+	virtual void OnEquippedSecondary();
 
 	virtual void OnRep_Owner() override;
 	UFUNCTION()
@@ -51,6 +64,8 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
+	void SpendRound();
+
 public:
 	
 	void SetWeaponState(EWeaponState State);
@@ -62,6 +77,7 @@ public:
 	
 	FORCEINLINE bool GetIsAutomatic() const { return bAutomatic; }
 	FORCEINLINE bool IsEmpty() const { return CurrentAmmo <= 0; }
+	FORCEINLINE bool IsFull() const { return CurrentAmmo >= MaxMagCapacity; }
 	FORCEINLINE int32 GetCurrentAmmo() const { return CurrentAmmo; }
 	FORCEINLINE int32 GetMaxMagCapacity() const { return MaxMagCapacity; }
 	FORCEINLINE EWeaponType GetWeaponType() const { return CurrentWeaponType; }
@@ -136,8 +152,6 @@ private:
 
 	UFUNCTION()
 	void OnRep_Ammo();
-
-	void SpendRound();
 
 	UPROPERTY()
 	class ABlasterCharacter* BlasterOwnerCharacter;

@@ -57,9 +57,20 @@ void ABlasterPlayerController::PollInit()
 			CharacterOverlay = BlasterHUD->CharacterOverlay;
 			if(CharacterOverlay)
 			{
-				SetHUDHealth(HUDHealth, HUDMaxHealth);
-				SetHUDScore(HUDScore);
-				SetHUDDefeat(HUDDefeats);
+				if(bInitHealth) SetHUDHealth(HUDHealth, HUDMaxHealth);
+				if(bInitShield) SetHUDShield(HUDShield, HUDMaxShield);
+				if(bInitScore) SetHUDScore(HUDScore);
+				if(bInitScore) SetHUDDefeat(HUDDefeats);
+				if(bInitWeaponAmmo) SetHUDWeaponAmmo(HUDWeaponAmmo);
+				if(bInitCarriedAmmo) SetHUDCarriedAmmo(HUDCarriedAmmo);
+				
+				if(ABlasterCharacter* BlasterCharacter = Cast<ABlasterCharacter>(GetPawn()))
+				{
+					if(BlasterCharacter && BlasterCharacter->GetCombatComponent())
+					{
+						if(bInitGrenades) SetHUDGrenades(BlasterCharacter->GetCombatComponent()->GetGrenadesCount());
+					}
+				}
 			}
 		}
 	}
@@ -146,9 +157,33 @@ void ABlasterPlayerController::SetHUDHealth(float Health, float MaxHealth)
 	}
 	else
 	{
-		bInitializeCharacterOverlay = true;
+		bInitHealth = true;
 		HUDHealth = Health;
 		HUDMaxHealth = MaxHealth;
+	}
+}
+
+void ABlasterPlayerController::SetHUDShield(float Shield, float MaxShield)
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+
+	bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+			BlasterHUD->CharacterOverlay->ShieldBar &&
+				BlasterHUD->CharacterOverlay->ShieldText;
+	
+	if(bHUDValid)
+	{
+		const float ShieldPercentage = Shield / MaxShield;
+		BlasterHUD->CharacterOverlay->ShieldBar->SetPercent(ShieldPercentage);
+		FString ShieldText = FString::Printf(TEXT("%d/%d"), FMath::CeilToInt(Shield), FMath::CeilToInt(MaxShield));
+		BlasterHUD->CharacterOverlay->ShieldText->SetText(FText::FromString(ShieldText));
+	}
+	else
+	{
+		bInitShield = true;
+		HUDShield = Shield;
+		HUDMaxShield = MaxShield;
 	}
 }
 
@@ -167,7 +202,7 @@ void ABlasterPlayerController::SetHUDScore(float Score)
 	}
 	else
 	{
-		bInitializeCharacterOverlay = true;
+		bInitScore = true;
 		HUDScore = Score;
 	}
 	
@@ -183,13 +218,12 @@ void ABlasterPlayerController::SetHUDDefeat(int32 Deaths)
 	
 	if(bHUDValid)
 	{
-		UE_LOG(LogTemp,Warning, TEXT("The HUD is valid"));
 		FString DefeatText = FString::Printf(TEXT("%d"), Deaths);
 		BlasterHUD->CharacterOverlay->DefeatAmount->SetText(FText::FromString(DefeatText));
 	}
 	else
 	{
-		bInitializeCharacterOverlay = true;
+		bInitDefeats = true;
 		HUDDefeats = Deaths;
 	}
 }
@@ -205,6 +239,11 @@ void ABlasterPlayerController::SetHUDWeaponAmmo(int32 Ammo)
 		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
 		BlasterHUD->CharacterOverlay->WeaponAmmoCount->SetText(FText::FromString(AmmoText));
 	}
+	else
+	{
+		bInitWeaponAmmo = true;
+		HUDWeaponAmmo = Ammo;
+	}
 }
 
 void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
@@ -217,6 +256,28 @@ void ABlasterPlayerController::SetHUDCarriedAmmo(int32 Ammo)
 	{
 		FString AmmoText = FString::Printf(TEXT("%d"), Ammo);
 		BlasterHUD->CharacterOverlay->CarriedAmmoAmount->SetText(FText::FromString(AmmoText));
+	}
+	else
+	{
+		bInitCarriedAmmo = true;
+		HUDCarriedAmmo = Ammo;
+	}
+}
+
+void ABlasterPlayerController::SetHUDGrenades(int32 Grenades)
+{
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+	BlasterHUD->CharacterOverlay->GrenadesAmount;
+	
+	if(bHUDValid)
+	{
+		FString GrenadeText = FString::Printf(TEXT("%d"), Grenades);
+		BlasterHUD->CharacterOverlay->GrenadesAmount->SetText(FText::FromString(GrenadeText));
+	}
+	else
+	{
+		HUDGrenades = Grenades;
 	}
 }
 
@@ -244,6 +305,7 @@ void ABlasterPlayerController::SetHUDMatchCountdown(float CountdownTime)
 		int32 Seconds = CountdownTime - Minutes * 60;
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes, Seconds);
 		BlasterHUD->CharacterOverlay->MatchCountdownText->SetText(FText::FromString(CountdownText));
+		ChangeColorOfText(Minutes, Seconds, BlasterHUD->CharacterOverlay->MatchCountdownText);
 	}
 }
 
@@ -261,6 +323,7 @@ void ABlasterPlayerController::SetHUDWarmupCountdown(float WarmupCountdown)
 		int32 Seconds = WarmupCountdown - Minutes * 60;
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes, Seconds);
 		BlasterHUD->AnnouncementOverlay->CountdownTime->SetText(FText::FromString(CountdownText));
+		ChangeColorOfText(Minutes, Seconds, BlasterHUD->CharacterOverlay->MatchCountdownText);
 	}
 }
 
@@ -272,8 +335,17 @@ void ABlasterPlayerController::ActivateEliminatedText()
 	
 	if(bHUDValid)
 	{
+		FString DefeatText = FString::Printf(TEXT("Killed by: %s"), *LastLostToPlayerName);
 		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Visible);
+		BlasterHUD->CharacterOverlay->EliminatedText->SetText(FText::FromString(DefeatText));
+		//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::DeactivateEliminatedText, 2.5f);
 	}
+}
+
+void ABlasterPlayerController::SetLastDefeatName(FString PlayerName)
+{
+	LastLostToPlayerName = PlayerName;
+	ActivateEliminatedText();
 }
 
 void ABlasterPlayerController::DeactivateEliminatedText()
@@ -284,7 +356,15 @@ void ABlasterPlayerController::DeactivateEliminatedText()
 	
 	if(bHUDValid)
 	{
-		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Hidden);
+		BlasterHUD->CharacterOverlay->EliminatedText->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void ABlasterPlayerController::ChangeColorOfText(float Minutes, float Seconds, UTextBlock* TextBlock)
+{
+	if(Minutes == 0 && Seconds <= TimerBlinking)
+	{
+		TextBlock->SetColorAndOpacity(FSlateColor(ColorWhenBlinking));
 	}
 }
 
@@ -293,7 +373,7 @@ void ABlasterPlayerController::HandleMatchHasStarted()
 	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
 	if(BlasterHUD)
 	{
-		BlasterHUD->AddCharacterOverlay();
+		if(BlasterHUD->CharacterOverlay == nullptr) BlasterHUD->AddCharacterOverlay();
 		if(BlasterHUD->AnnouncementOverlay)
 		{
 			BlasterHUD->AnnouncementOverlay->SetVisibility(ESlateVisibility::Collapsed);
@@ -385,6 +465,12 @@ void ABlasterPlayerController::OnMatchStateSet(FName State)
 	}
 }
 
+void ABlasterPlayerController::BeginPlayingState()
+{
+	Super::BeginPlayingState();
+	DeactivateEliminatedText();
+}
+
 
 void ABlasterPlayerController::ServerCheckMatchState_Implementation()
 {
@@ -416,6 +502,7 @@ void ABlasterPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ABlasterPlayerController, MatchState);
+	DOREPLIFETIME(ABlasterPlayerController, LastLostToPlayerName);
 }
 
 float ABlasterPlayerController::GetServerTime()

@@ -26,28 +26,58 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	float Damage{20.f};
+	
+	UPROPERTY(EditDefaultsOnly)
+	class UParticleSystem* ImpactParticles;
+
+	UPROPERTY(EditDefaultsOnly)
+	class USoundCue* ImpactSound;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UBoxComponent* CollisonBox;
+	
+	UPROPERTY(VisibleDefaultsOnly)
+	class UProjectileMovementComponent* ProjectileMovementComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	class UNiagaraSystem* TrailSystem;
+
+	UPROPERTY()
+	class UNiagaraComponent* TrailSystemComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+	UStaticMeshComponent* ProjectileMesh;
+
+	void SpawnTrailSystem();
+	void DestroyTimerFinished();
+	FTimerHandle DestroyTimer;
+	void StartDestroyTimer();
+
+	void ExplosionDamage();
+
+	UPROPERTY(EditDefaultsOnly)
+	float DestroyTime{3};
+	
+	UPROPERTY(EditDefaultsOnly)
+	float InnerRadius = 200.f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float OuterRadius{500.f};
+
+	UPROPERTY(EditDefaultsOnly)
+	float MinimumDamage{10.f};
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	UPROPERTY(EditDefaultsOnly)
-	class UBoxComponent* CollisonBox;
 
-	UPROPERTY(VisibleDefaultsOnly)
-	class UProjectileMovementComponent* ProjectileMovementComponent;
+
 	
 	UPROPERTY(EditDefaultsOnly)
 	class UParticleSystem* Tracer;
 	
 	
 	class UParticleSystemComponent* TracerComponent;
-
-	
-	UPROPERTY(EditDefaultsOnly)
-	UParticleSystem* ImpactParticles;
-
-	UPROPERTY(EditDefaultsOnly)
-	class USoundCue* ImpactSound;
 	
 };

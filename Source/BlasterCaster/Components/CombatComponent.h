@@ -9,7 +9,7 @@
 #include "BlasterCaster/BlasterTypes/CombatStateTypes.h"
 #include "CombatComponent.generated.h"
 
-#define TRACE_LENGTH 80000
+
 
 class ABlasterCharacter;
 class AWeapon;
@@ -37,6 +37,8 @@ protected:
 
 	UFUNCTION()
 	void OnRep_EquippedWeapon();
+	UFUNCTION()
+	void OnRep_SecondaryWeapon();
 	void Fire();
 
 	UFUNCTION(Server, Reliable)
@@ -48,14 +50,32 @@ protected:
 	void TraceUnderCrossHair(FHitResult& HitResult);
 
 	void SetHUDCrosshairs(float DeltaTime);
+	void DropEquippedWeapon();
+
+	void AttachActorToRightHand(AActor* ActorToAttach);
+	void AttachActorToLeftHand(AActor* ActorToAttach);
+	void AttachActorToBackpack(AActor* ActorToAttach);
+	void UpdateCarriedAmmo();
+	void PlayEquipWeaponSound(AWeapon* EquippingWeapon);
+	void ReloadEmptyWeapon();
 
 	UFUNCTION(Server,Reliable)
 	void ServerReload();
 
 	void HandleReload();
-	
+
+	void ThrowGrenade();
+	UFUNCTION(Server, Reliable)
+	void ServerThrowGrenade();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AProjectile> GrenadeClass;
+
+	void EquipPrimaryWeapon(AWeapon* WeaponToEquip);
+	void EquipSecondaryWeapon(AWeapon* WeaponToEquip);
 public:
 	void EquipWeapon(AWeapon* WeaponToEquip);
+	void SwapWeapons();
 
 	void Reload();
 
@@ -64,8 +84,26 @@ public:
 
 	int32 AmountToReload();
 	void UpdateAmmoValues();
+	void UpdateShotgunAmmoValues();
+	void JumpToShotgunEnd();
+
+	UFUNCTION(BlueprintCallable)
+	void ShotgunShellReload();
+
+	UFUNCTION(BlueprintCallable)
+	void ThrowGrenadeFinished();
+
+	UFUNCTION(BlueprintCallable)
+	void LaunchGrenade();
+
+	UFUNCTION(Server, Reliable)
+	void ServerLaunchGrenade(const FVector_NetQuantize& Target);
 
 	FORCEINLINE bool IsFiring() const { return bFireButtonPressed; }
+	FORCEINLINE int32 GetGrenadesCount() const { return CurrentAmountGrenades; }
+	bool CanSwapWeapons();
+
+	void PickupAmmo(EWeaponType WeaponType, int32 AmmoAmount);
 private:
 	UPROPERTY()
 	ABlasterCharacter* Character;
@@ -78,6 +116,9 @@ private:
 	
 	UPROPERTY(ReplicatedUsing=OnRep_EquippedWeapon)
 	AWeapon* EquippedWeapon;
+
+	UPROPERTY(ReplicatedUsing=OnRep_SecondaryWeapon)
+	AWeapon* SecondaryWeapon;
 
 	UPROPERTY(Replicated)
 	bool bAiming;
@@ -151,6 +192,8 @@ private:
 
 	bool CanFire() const;
 
+	void ToggleGrenadeVisiblity(bool bVisible);
+
 	//Carried ammo for currently equipped weapon
 	UPROPERTY(ReplicatedUsing=OnRep_CarriedAmmo)
 	int32 CarriedAmmo;
@@ -162,6 +205,38 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	int32 StartingARAmmo{30};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingPistolAmmo{60};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingRocketAmmo{0};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingSMGAmmo{0};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingShotgunAmmo{0};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingSniperAmmo{0};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 StartingGrenadeLauncher{0};
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Grenades)
+	int32 CurrentAmountGrenades{4};
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxCarriedAmmo{500};
+
+	UFUNCTION()
+	void OnRep_Grenades();
+
+	UPROPERTY(EditDefaultsOnly)
+	int32 MaxGrenades{4};
+
+	void UpdateHUDGrenades();
 	
 	void InitalizeCarriedAmmo();
 

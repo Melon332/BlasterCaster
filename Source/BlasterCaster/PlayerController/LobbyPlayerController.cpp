@@ -79,6 +79,14 @@ void ALobbyPlayerController::UpdateAnnouncementTimer(float Timer)
 		int32 Seconds = Timer - Minutes * 60;
 		FString CountdownText = FString::Printf(TEXT("%02d:%02d"),Minutes, Seconds);
 		LobbyHUD->AnnouncementOverlay->CountdownTime->SetText(FText::FromString(CountdownText));
+		ChangeColorOfText(Minutes, Seconds, LobbyHUD->AnnouncementOverlay->CountdownTime);
+	}
+}
+void ALobbyPlayerController::ChangeColorOfText(float Minutes, float Seconds, UTextBlock* TextBlock)
+{
+	if(Minutes == 0 && Seconds <= TimerBlinking)
+	{
+		TextBlock->SetColorAndOpacity(FSlateColor(ColorWhenBlinking));
 	}
 }
 

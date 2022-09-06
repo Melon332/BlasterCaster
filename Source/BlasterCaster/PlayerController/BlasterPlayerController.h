@@ -15,16 +15,21 @@ class BLASTERCASTER_API ABlasterPlayerController : public APlayerController
 	GENERATED_BODY()
 public:
 	void SetHUDHealth(float Health, float MaxHealth);
+	void SetHUDShield(float Shield, float MaxShield);
 	void SetHUDScore(float Score);
 	void SetHUDDefeat(int32 Deaths);
 	void SetHUDWeaponAmmo(int32 Ammo);
 	void SetHUDCarriedAmmo(int32 Ammo);
+	void SetHUDGrenades(int32 Grenades);
 	void SetHUDWeaponName(FString WeaponName, FString WeaponType);
 	void SetHUDMatchCountdown(float CountdownTime);
 	void SetHUDWarmupCountdown(float WarmupCountdown);
 	void ActivateEliminatedText();
+	void SetLastDefeatName(FString PlayerName);
 	void DeactivateEliminatedText();
+	void ChangeColorOfText(float Minutes, float Seconds, class UTextBlock* TextBlock);
 	void OnMatchStateSet(FName State);
+	virtual void BeginPlayingState() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual float GetServerTime(); //Synced with server world clock
@@ -79,18 +84,45 @@ private:
 	UPROPERTY(ReplicatedUsing=OnRep_MatchState)
 	FName MatchState;
 
+	UPROPERTY(EditDefaultsOnly)
+	float TimerBlinking{30};
+
 	UFUNCTION()
 	void OnRep_MatchState();
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
 
-	bool bInitializeCharacterOverlay{false};
+	
 
 	float HUDHealth;
 	float HUDMaxHealth;
+	bool bInitHealth{false};
+	
+	float HUDShield;
+	float HUDMaxShield;
+	bool bInitShield{false};
+
+	float HUDCarriedAmmo;
+	bool bInitCarriedAmmo{false};
+
+	float HUDWeaponAmmo;
+	bool bInitWeaponAmmo{false};
 
 	float HUDScore;
+	bool bInitScore{false};
 	int32 HUDDefeats;
+	bool bInitDefeats{false};
+	int32 HUDGrenades;
+	bool bInitGrenades{false};
+	UPROPERTY()
 	class ABlasterGameMode* BlasterGameMode;
+
+	UPROPERTY(EditDefaultsOnly)
+	FLinearColor ColorWhenBlinking;
+
+	FTimerHandle TimerHandle;
+
+	UPROPERTY(Replicated)
+	FString LastLostToPlayerName;
 };

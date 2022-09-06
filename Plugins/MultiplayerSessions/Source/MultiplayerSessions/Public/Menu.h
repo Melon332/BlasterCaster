@@ -11,6 +11,7 @@
  * 
  */
 class UButton;
+class UWidgetSwitcher;
 UCLASS()
 class MULTIPLAYERSESSIONS_API UMenu : public UUserWidget
 {
@@ -41,6 +42,18 @@ private:
 	UPROPERTY(meta=(BindWidget))
 	UButton* HostButton;
 
+	UPROPERTY(meta=(BindWidget))
+	UWidgetSwitcher* WidgetController;
+
+	UPROPERTY(meta=(BindWidget))
+	UButton* ServerBrowserButton;
+
+	UPROPERTY(meta=(BindWidget))
+	UButton* BackButton;
+
+	UPROPERTY(meta=(BindWidget))
+	class UVerticalBox* ServerList;
+
 	UFUNCTION()
 	void HostButtonClicked();
 
@@ -50,9 +63,20 @@ private:
 	void MenuTearDown();
 
 	//Subsystem to handle online session functionality
+	UPROPERTY()
 	class UMultiplayerSessionSubsystem* MultiplayerSessionSubsystem;
 
 	int32 MaxPlayers{4};
 	FString MatchType{TEXT("Mehmet_UE_FreeForAll")};
 	FString PathToLobby{};
+
+	UFUNCTION()
+	void ActivateServerBrowser();
+	UFUNCTION()
+	void ReturnToMainMenu();
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UUserWidget> ServerButton;
+
+	bool ServerBrowserSearch;
 };
