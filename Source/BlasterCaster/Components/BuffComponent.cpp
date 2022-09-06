@@ -146,11 +146,6 @@ void UBuffComponent::MaxHealthBuffTimerFinished()
 		Character->SetCurrentHealth(Character->GetMaxHealth());
 	}
 	Character->UpdateHUDHealth();
-
-	if(GEngine)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Orange, TEXT("I am de-buffed now"));
-	}
 }
 
 void UBuffComponent::MulticastJumpBuff_Implementation(float JumpBuff)

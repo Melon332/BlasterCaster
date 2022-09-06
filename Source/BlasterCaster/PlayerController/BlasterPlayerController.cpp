@@ -16,6 +16,7 @@
 #include "BlasterCaster/Widgets/Announcement.h"
 #include "Kismet/GameplayStatics.h"
 #include "BlasterCaster/GameStates/BlasterGameState.h"
+#include "Components/Image.h"
 
 void ABlasterPlayerController::BeginPlay()
 {
@@ -35,7 +36,38 @@ void ABlasterPlayerController::Tick(float DeltaSeconds)
 	CheckTimeSync(DeltaSeconds);
 
 	PollInit();
+
+	CheckPing(DeltaSeconds);
 }
+void ABlasterPlayerController::CheckPing(float DeltaSeconds)
+{
+	HighPingRunningTime += DeltaSeconds;
+	if(HighPingRunningTime > CheckPingFrequency)
+	{
+		PlayerState = PlayerState == nullptr ? GetPlayerState<APlayerState>() : PlayerState;
+		if(PlayerState)
+		{
+			if(PlayerState->GetCompressedPing() * 4 > HighPingThreshold) // ping is compressed so its actually ping / 4
+			{
+				HighPingWarning();
+				PingAnimationRunningTime = 0.f;
+			}
+		}
+		HighPingRunningTime = 0.f;
+	}
+	bool bHighPingAnimationPlaying = BlasterHUD && BlasterHUD->CharacterOverlay
+	&& BlasterHUD->CharacterOverlay->HighPingAnimation
+	&& BlasterHUD->CharacterOverlay->IsAnimationPlaying(BlasterHUD->CharacterOverlay->HighPingAnimation);
+	if(bHighPingAnimationPlaying)
+	{
+		PingAnimationRunningTime += DeltaSeconds;
+		if(PingAnimationRunningTime > HighPingDuration)
+		{
+			StopHighPingWarning();
+		}
+	}
+}
+
 
 void ABlasterPlayerController::CheckTimeSync(float DeltaSeconds)
 {
@@ -434,6 +466,39 @@ void ABlasterPlayerController::HandleCooldownHasStarted()
 		BlasterCharacter->GetCombatComponent()->FireButtonPressed(false);
 	}
 }
+
+void ABlasterPlayerController::HighPingWarning()
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	bool bHUDValid = BlasterHUD &&
+		BlasterHUD->CharacterOverlay &&
+		BlasterHUD->CharacterOverlay->HighPingImage &&
+		BlasterHUD->CharacterOverlay->HighPingAnimation;
+	
+	if(bHUDValid)
+	{
+		BlasterHUD->CharacterOverlay->HighPingImage->RenderOpacity = 1.0f;
+		BlasterHUD->CharacterOverlay->PlayAnimation(BlasterHUD->CharacterOverlay->HighPingAnimation, 0.f, 5);
+	}
+}
+
+void ABlasterPlayerController::StopHighPingWarning()
+{
+	BlasterHUD = BlasterHUD == nullptr ? Cast<ABlasterHUD>(GetHUD()) : BlasterHUD;
+	bool bHUDValid = BlasterHUD &&
+	BlasterHUD->CharacterOverlay &&
+	BlasterHUD->CharacterOverlay->HighPingImage &&
+	BlasterHUD->CharacterOverlay->HighPingAnimation;
+	if(bHUDValid)
+	{
+		BlasterHUD->CharacterOverlay->HighPingImage->RenderOpacity = 0.f;
+		if(BlasterHUD->CharacterOverlay->IsAnimationPlaying(BlasterHUD->CharacterOverlay->HighPingAnimation))
+		{
+			BlasterHUD->CharacterOverlay->StopAnimation(BlasterHUD->CharacterOverlay->HighPingAnimation);
+		}
+	}
+}
+
 
 void ABlasterPlayerController::ClientJoinMidGame_Implementation(FName StateOfMatch, float Warmup, float Match,
                                                                 float StartingTime, float Cooldown)

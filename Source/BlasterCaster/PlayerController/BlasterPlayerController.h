@@ -70,6 +70,10 @@ protected:
 
 	UFUNCTION(Client, Reliable)
 	void ClientJoinMidGame(FName StateOfMatch, float Warmup, float Match, float StartingTime, float Cooldown);
+
+	void HighPingWarning();
+	void StopHighPingWarning();
+	void CheckPing(float DeltaSeconds);
 private:
 	UPROPERTY()
 	class ABlasterHUD* BlasterHUD;
@@ -125,4 +129,17 @@ private:
 
 	UPROPERTY(Replicated)
 	FString LastLostToPlayerName;
+
+	float HighPingRunningTime{0.f};
+	
+	UPROPERTY(EditDefaultsOnly)
+	float HighPingDuration{5.f};
+
+	UPROPERTY(EditDefaultsOnly)
+	float CheckPingFrequency{20.f};
+
+	UPROPERTY(EditDefaultsOnly)
+	float HighPingThreshold{50.f};
+
+	float PingAnimationRunningTime{0.f};
 };

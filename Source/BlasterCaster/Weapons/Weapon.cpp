@@ -211,7 +211,10 @@ void AWeapon::FireWeapon(const FVector& HitTarget)
 			GetWorld()->SpawnActor<ACasing>(CasingClass, MuzzleTransform.GetLocation(), MuzzleTransform.GetRotation().Rotator());
 		}
 	}
-	SpendRound();
+	if(HasAuthority())
+	{
+		SpendRound();
+	}
 }
 
 void AWeapon::OnRep_WeaponState()
