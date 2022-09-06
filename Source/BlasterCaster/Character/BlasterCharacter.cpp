@@ -84,6 +84,7 @@ void ABlasterCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(ABlasterCharacter, CurrentShield);
 	DOREPLIFETIME(ABlasterCharacter, bIsRunning);
 	DOREPLIFETIME(ABlasterCharacter, bDisableGameplay);
+	DOREPLIFETIME(ABlasterCharacter, MaxHealth)
 }
 
 void ABlasterCharacter::UpdateHUDHealth()
@@ -122,6 +123,8 @@ void ABlasterCharacter::BeginPlay()
 	{
 		GrenadeMesh->SetVisibility(false);
 	}
+
+	DefaultMaxHealth = MaxHealth;
 }
 
 
@@ -786,6 +789,11 @@ FVector ABlasterCharacter::GetHitTarget() const
 	if(!CombatComponent) return FVector();
 
 	return CombatComponent->HitTarget;
+}
+
+void ABlasterCharacter::ServerSetMaxHealth_Implementation(float NewMaxHealth)
+{
+	MaxHealth = NewMaxHealth;
 }
 
 void ABlasterCharacter::ServerSprinting_Implementation(bool bRunning)

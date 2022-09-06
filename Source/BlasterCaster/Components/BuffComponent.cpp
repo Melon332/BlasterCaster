@@ -125,6 +125,34 @@ void UBuffComponent::BuffJump(float BuffJumpVelocity, float BuffTime)
 	MulticastJumpBuff(BuffJumpVelocity);
 }
 
+void UBuffComponent::MaxHealthIncrease(float NewMaxHealth, float BuffTime)
+{
+	if(!Character) return;
+
+	Character->SetMaxHealth(Character->GetMaxHealth() + NewMaxHealth);
+
+	float CurrentHealthHeal = Character->GetMaxHealth() - Character->GetCurrentHealth();
+	Heal(CurrentHealthHeal, 1);
+	Character->GetWorldTimerManager().SetTimer(MaxHealthBuffHandle, this , &ThisClass::MaxHealthBuffTimerFinished, BuffTime);
+}
+
+void UBuffComponent::MaxHealthBuffTimerFinished()
+{
+	if(!Character) return;
+	Character->SetMaxHealth(Character->GetDefaultMaxHealth());
+
+	if(Character->GetCurrentHealth() >= Character->GetMaxHealth())
+	{
+		Character->SetCurrentHealth(Character->GetMaxHealth());
+	}
+	Character->UpdateHUDHealth();
+
+	if(GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Orange, TEXT("I am de-buffed now"));
+	}
+}
+
 void UBuffComponent::MulticastJumpBuff_Implementation(float JumpBuff)
 {
 	if(!Character) return;

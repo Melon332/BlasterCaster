@@ -28,6 +28,7 @@ public:
 	void ReplenishShield(float ShieldAmount, float ShieldTime);
 	void SpeedBuff(float SpeedBuff, float CrouchSpeedBuff, float SpeedBuffTime);
 	void BuffJump(float BuffJumpVelocity, float BuffTime);
+	void MaxHealthIncrease(float NewMaxHealth, float BuffTime);
 private:
 	UPROPERTY()
 	ABlasterCharacter* Character;
@@ -59,6 +60,11 @@ private:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastJumpBuff(float JumpBuff);
+
+	//MAX HEALTH VARIABLES
+	void MaxHealthBuffTimerFinished();
+
+	FTimerHandle MaxHealthBuffHandle;
 public:
 	FORCEINLINE void SetInitialSpeeds(float BaseSpeed, float CrouchSpeed) { InitialBaseSpeed = BaseSpeed; InitialCrouchSpeed = CrouchSpeed; }
 	FORCEINLINE void SetInitialJumpSpeed(float JumpSpeed) { InitialBaseJump = JumpSpeed; }

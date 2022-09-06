@@ -156,7 +156,7 @@ private:
 	/**
 	* Player Health
 	*/
-	UPROPERTY(EditDefaultsOnly, Category="Player Stats")
+	UPROPERTY(Replicated, EditDefaultsOnly, Category="Player Stats")
 	float MaxHealth{100.f};
 	UPROPERTY(ReplicatedUsing=OnRep_HealthUpdated, VisibleAnywhere)
 	float CurrentHealth;
@@ -240,6 +240,8 @@ private:
 	//Default Weapon
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AWeapon> DefaultWeaponClass;
+
+	float DefaultMaxHealth{0.f};
 public:	
 	void SetOverlappingWeapon(AWeapon* OverlappedWeapon);
 	bool IsWeaponEquipped();
@@ -257,12 +259,14 @@ public:
 	FORCEINLINE void SetCurrentHealth(float Amount) { CurrentHealth = Amount; }
 	FORCEINLINE void SetCurrentShield(float Amount) { CurrentShield = Amount; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE void SetMaxHealth(float NewMaxHealth) { MaxHealth = NewMaxHealth; }
 	FORCEINLINE float GetMaxShield() const { return MaxShield; }
 	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	FORCEINLINE UBuffComponent* GetBuffComponent() const { return BuffComponent; }
 	FORCEINLINE bool GetDisableGameplay() const { return bDisableGameplay; }
 	FORCEINLINE UAnimMontage* GetReloadMontage() const { return ReloadMontage; }
 	FORCEINLINE UStaticMeshComponent* GetGrenadeMesh() const { return GrenadeMesh; }
+	FORCEINLINE float GetDefaultMaxHealth() const { return DefaultMaxHealth; }
 	ECombatState GetCurrentCombatState() const;
 	AWeapon* GetEquippedWeapon();
 
@@ -270,6 +274,9 @@ public:
 	void PlayReloadMontage();
 	void PlayThrowGrenadeMontage();
 	FVector GetHitTarget() const;
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetMaxHealth(float NewMaxHealth);
 
 	UFUNCTION(NetMulticast,Reliable)
 	void MulticastEliminated();
